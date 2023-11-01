@@ -161,14 +161,11 @@ namespace CodeqoEditor.Git
 
         void DrawButtons()
         {
-            if (_git.PullAvailable)
+            if (GUILayout.Button("Download (Git Pull)"))
             {
-                if (GUILayout.Button("Download (Git Pull)"))
-                {
-                    Pull();
-                }
-            }   
-
+                Pull();
+            }
+            
             if (GUILayout.Button("Upload (Git Push)"))
             {
                 if (CUIUtility.Warning("Are you sure you want to upload to the git repository?"))
