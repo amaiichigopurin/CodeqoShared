@@ -114,39 +114,7 @@ namespace CodeqoEditor.Git
 
                 foreach (var gitOutput in _gitOutputs)
                 {
-<<<<<<< HEAD
                     DrawGitOutput(gitOutput, gitOutputStyle);
-=======
-                    for (int i = 0; i < _gitOutputs.Count; i++)
-                    {              
-                        Color colorOrigin = Color.black;
-                        
-                        switch (_gitOutputs[i].status)
-                        {
-                            case GitOutputStatus.Error:                      
-                                colorOrigin = gitOutputStyle.normal.textColor;
-                                gitOutputStyle.normal.textColor = Color.red;
-                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
-                                gitOutputStyle.normal.textColor = colorOrigin;
-                                break;
-                            case GitOutputStatus.Success:                       
-                                colorOrigin = gitOutputStyle.normal.textColor;
-                                gitOutputStyle.normal.textColor = Color.blue;
-                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
-                                gitOutputStyle.normal.textColor = colorOrigin;
-                                break;
-                            case GitOutputStatus.Warning:                     
-                                colorOrigin = gitOutputStyle.normal.textColor;
-                                gitOutputStyle.normal.textColor = Color.magenta;
-                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
-                                gitOutputStyle.normal.textColor = colorOrigin;
-                                break;
-                            default:
-                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
-                                break;
-                        }     
-                    }                    
->>>>>>> ae0b2997d5568880480ce3f1fdf16e9647e27880
                 }
 
                 GUILayout.EndScrollView();
@@ -193,7 +161,7 @@ namespace CodeqoEditor.Git
             {
                 Pull();
             }
-            
+
             if (GUILayout.Button("Upload (Git Push)"))
             {
                 if (CUIUtility.Warning("Are you sure you want to upload to the git repository?"))

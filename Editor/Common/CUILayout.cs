@@ -1,8 +1,5 @@
-using Glitch9;
-using Glitch9.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -110,28 +107,21 @@ namespace CodeqoEditor
             return value;
         }
 
-        public static bool ButtonToggle(GUIContent content, bool value, Action<bool> onToggle, params GUILayoutOption[] options)
+        public static bool ButtonToggle(GUIContent content, bool value, params GUILayoutOption[] options)
         {
             if (value) GUI.backgroundColor = new Color(0.5f, 0.9f, 0.9f);
             if (GUILayout.Button(content, options))
             {
                 value = !value;
-                onToggle?.Invoke(value);
             }
             GUI.backgroundColor = Color.white;
             return value;
         }
-        
-        public static bool ButtonToggle(string label, bool value, Action<bool> onToggle, params GUILayoutOption[] options)
-            => ButtonToggle(new GUIContent(label), value, onToggle, options);        
-        public static bool ButtonToggle(Texture2D tex, bool value, Action<bool> onToggle, params GUILayoutOption[] options)
-            => ButtonToggle(new GUIContent(tex), value, onToggle, options);
-        public static bool ButtonToggle(GUIContent content, bool value, params GUILayoutOption[] options)
-            => ButtonToggle(content, value, null, options);
+
         public static bool ButtonToggle(string label, bool value, params GUILayoutOption[] options)
-            => ButtonToggle(new GUIContent(label), value, null, options);
+            => ButtonToggle(new GUIContent(label), value, options);
         public static bool ButtonToggle(Texture2D tex, bool value, params GUILayoutOption[] options)
-            => ButtonToggle(new GUIContent(tex), value, null, options);
+            => ButtonToggle(new GUIContent(tex), value, options);
 
         public static void SpriteField(SerializedProperty p, int size, int topMargin)
         {
@@ -143,7 +133,7 @@ namespace CodeqoEditor
                 }); ;
             GUILayout.EndVertical();
         }
-        
+
         static GUIStyle BoxedLabel(TextAnchor alignment, CUIColor color = CUIColor.None)
         {
             GUIStyle box = new GUIStyle();
@@ -368,18 +358,6 @@ namespace CodeqoEditor
             return new DateTime(YY, MM, DD, hh, mm, ss);
         }
 
-        public static GNTime GNTimeField(string label, GNTime gnTime, params GUILayoutOption[] options)
-        {
-            GNTime result = new GNTime();
-            GUILayout.BeginHorizontal(options);
-            float labelWidth = EditorGUIUtility.labelWidth;
-            EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
-            result.hour = EditorGUILayout.IntField(gnTime.hour, GUILayout.Width(30));
-            GUILayout.Label(":", GUILayout.Width(10));
-            result.minute = EditorGUILayout.IntField(gnTime.minute, GUILayout.Width(30));
-            GUILayout.EndHorizontal();
-            return result;
-        }
         #endregion
 
 
@@ -419,7 +397,7 @@ namespace CodeqoEditor
             return selectedColor;
         }
 
-        public static Color ColorSelectToolbar(string label, List<Color> colorList, Color selectedColor) 
+        public static Color ColorSelectToolbar(string label, List<Color> colorList, Color selectedColor)
             => ColorSelectToolbar(new GUIContent(label), colorList, selectedColor);
 
 
@@ -441,19 +419,19 @@ namespace CodeqoEditor
             return result;
         }
 
-        public static bool ColorButton(GUIContent content, Color color, GUIStyle style, params GUILayoutOption[] options)        
+        public static bool ColorButton(GUIContent content, Color color, GUIStyle style, params GUILayoutOption[] options)
             => ColorButton(content, color, Color.black, style, options);
-        public static bool ColorButton(string label, Color color, GUIStyle style, params GUILayoutOption[] options)        
+        public static bool ColorButton(string label, Color color, GUIStyle style, params GUILayoutOption[] options)
             => ColorButton(new GUIContent(label), color, style, options);
-        public static bool ColorButton(string label, Color color, Color textColor, GUIStyle style, params GUILayoutOption[] options)        
+        public static bool ColorButton(string label, Color color, Color textColor, GUIStyle style, params GUILayoutOption[] options)
             => ColorButton(new GUIContent(label), color, textColor, style, options);
-        public static bool ColorButton(GUIContent content, Color color, params GUILayoutOption[] options)        
+        public static bool ColorButton(GUIContent content, Color color, params GUILayoutOption[] options)
             => ColorButton(content, color, Color.black, null, options);
-        public static bool ColorButton(string label, Color color, params GUILayoutOption[] options)        
+        public static bool ColorButton(string label, Color color, params GUILayoutOption[] options)
             => ColorButton(new GUIContent(label), color, options);
-        public static bool ColorButton(string label, Color color, Color textColor, params GUILayoutOption[] options)        
+        public static bool ColorButton(string label, Color color, Color textColor, params GUILayoutOption[] options)
             => ColorButton(new GUIContent(label), color, textColor, null, options);
-        public static bool ColorButton(GUIContent content, Color color, Color textColor, params GUILayoutOption[] options)        
+        public static bool ColorButton(GUIContent content, Color color, Color textColor, params GUILayoutOption[] options)
             => ColorButton(content, color, textColor, null, options);
 
 
@@ -461,9 +439,9 @@ namespace CodeqoEditor
 
         #region ListDropdownField
 
-        public static string ListDropdownField(string currentValue, List<string> list, GUIContent label = null, params GUILayoutOption[] options)        
-            => GenericDropdownField(currentValue, list, label, options);   
-        public static string ListDropdownField(string currentValue, string[] array, GUIContent label = null, params GUILayoutOption[] options)        
+        public static string ListDropdownField(string currentValue, List<string> list, GUIContent label = null, params GUILayoutOption[] options)
+            => GenericDropdownField(currentValue, list, label, options);
+        public static string ListDropdownField(string currentValue, string[] array, GUIContent label = null, params GUILayoutOption[] options)
             => GenericDropdownField(currentValue, array, label, options);
         private static T GenericDropdownField<T>(T currentValue, IList<T> list, GUIContent label = null, params GUILayoutOption[] options)
         {
@@ -474,7 +452,14 @@ namespace CodeqoEditor
             }
 
             int index = list.IndexOf(currentValue);
-            index = EditorGUILayout.Popup(label, index, list.ToStringArray(), options);
+            List<string> stringArray = new List<string>();
+            foreach (var enumValue in list)
+            {
+                stringArray.Add(enumValue.ToString());
+            }
+
+
+            index = EditorGUILayout.Popup(label, index, stringArray.ToArray(), options);
             if (index < 0) index = 0;
             return list[index];
         }
@@ -526,9 +511,9 @@ namespace CodeqoEditor
 
             return index;
         }
-        
 
- 
+
+
 
 
 
@@ -621,9 +606,9 @@ namespace CodeqoEditor
                         bool isOn = checkDictionary[value];
                         bool isDefault = defaultValue != -1 && Convert.ToInt32(value) == defaultValue;
                         string label = isDefault ? value.ToString() + " (Default)" : value.ToString();
-                        
+
                         bool toggle = EditorGUILayout.ToggleLeft(label, isOn, GUILayout.Width(EditorGUIUtility.currentViewWidth / columns - 10));
-                                            
+
                         if (defaultValue != -1)
                         {
                             int enumIndex = Convert.ToInt32(value);
@@ -685,7 +670,7 @@ namespace CodeqoEditor
                 enumProperty.intValue = newIndex;
                 return true;
             }
-            
+
             return false;
         }
 
@@ -719,8 +704,8 @@ namespace CodeqoEditor
 
 
         public static string TextArea(string text, Object assetToSave, params GUILayoutOption[] options)
-           => TextArea(text, assetToSave, null, options); 
-        
+           => TextArea(text, assetToSave, null, options);
+
         public static string TextArea(string text, Object assetToSave, GUIStyle style, params GUILayoutOption[] options)
         {
             if (assetToSave == null)
@@ -746,7 +731,7 @@ namespace CodeqoEditor
             return newText;
         }
 
-  
+
 
     }
 }

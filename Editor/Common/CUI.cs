@@ -166,6 +166,14 @@ namespace CodeqoEditor
             return list[index];
         }
 
-        
+
+        public static void DrawCircle(Rect rect, Texture2D tex)
+        {
+            // draw a circle with a texture inside
+            GUI.BeginGroup(rect);
+            GUI.DrawTexture(new Rect(0, 0, rect.width, rect.height), tex, ScaleMode.ScaleToFit, true, 0, Color.white, 0, 0);
+            GUI.EndGroup();
+        }
+
     }
 }

@@ -22,6 +22,7 @@ namespace CodeqoEditor
         public Texture2D shuffle;
         public Texture2D repeat;
         public Texture2D repeatOne;
+        public Texture2D close;
 
         [Header("Text")]
         public Texture2D textDefault;
@@ -73,6 +74,7 @@ namespace CodeqoEditor
         public static Texture2D Shuffle => Instance.shuffle;
         public static Texture2D Repeat => Instance.repeat;
         public static Texture2D RepeatOne => Instance.repeatOne;
+        public static Texture2D Close => Instance.close;
 
         // Text
         public static Texture2D TextDefault => Instance.textDefault;
