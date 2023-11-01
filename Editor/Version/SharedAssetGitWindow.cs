@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace CodeqoEditor
+namespace CodeqoEditor.Git
 {
     public class SharedAssetGitWindow : GitWindow
     {

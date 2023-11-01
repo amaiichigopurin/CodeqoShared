@@ -9,16 +9,17 @@ using Debug = UnityEngine.Debug;
 /// Release Date: 2023-11-01
 /// </summary>
 
-namespace CodeqoEditor
+namespace CodeqoEditor.Git
 {
-    public struct VersionInfo : IEquatable<VersionInfo>, IComparable<VersionInfo>
+    public enum GitVersion
     {
-        public enum VersionType
-        {
-            Major,
-            Minor,
-            Patch
-        }
+        Major,
+        Minor,
+        Patch
+    }
+    
+    public struct VersionInfo : IEquatable<VersionInfo>, IComparable<VersionInfo>
+    { 
 
         public int Major;
         public int Minor;
@@ -78,17 +79,17 @@ namespace CodeqoEditor
             return new VersionInfo(lines);
         }    
 
-        public void IncrementBuild(string writePath, VersionType versionType)
+        public void IncrementBuild(string writePath, GitVersion versionType)
         {
             switch (versionType)
             {
-                case VersionType.Major:
+                case GitVersion.Major:
                     Major++;
                     break;
-                case VersionType.Minor:
+                case GitVersion.Minor:
                     Minor++;
                     break;
-                case VersionType.Patch:
+                case GitVersion.Patch:
                     Patch++;
                     break;
             }

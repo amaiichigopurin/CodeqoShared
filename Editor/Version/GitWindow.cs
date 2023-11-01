@@ -1,17 +1,21 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using static CodeqoEditor.VersionInfo;
 
-namespace CodeqoEditor
+
+namespace CodeqoEditor.Git
 {
+
+
     public abstract class GitWindow : PaddedEditorWindow
     {
         protected abstract string GIT_URL { get; }
         protected abstract string WORKING_DIR { get; }
 
         CodeqoGit _git;
-        string _gitOutput;
-        string _gitErrorOutput;
+        Vector2 _scrollPosition;
+        List<GitOutput> _gitOutputs;
+
         string _repoName;
         string _windowName;
         string _commandLine;
@@ -33,19 +37,16 @@ namespace CodeqoEditor
                 Debug.LogError("Working Dir is null or empty: " + WORKING_DIR);
                 return;
             }
-          
+
+            _gitOutputs = new List<GitOutput>();
             _repoName = GIT_URL.Substring(GIT_URL.LastIndexOf('/') + 1);
-            _windowName = _repoName + " Git Window";
+            _windowName = _repoName;
 
             _git = new CodeqoGit(WORKING_DIR, GIT_URL);
+
             _git.OnGitOutput += (output) =>
             {
-                _gitOutput = output;
-                _gitOutputUpdated++;
-            };
-            _git.OnGitErrorOutput += (output) =>
-            {
-                _gitErrorOutput = output;
+                _gitOutputs.Add(output);
                 _gitOutputUpdated++;
             };
 
@@ -94,18 +95,42 @@ namespace CodeqoEditor
 
             CUILayout.VerticalLayout(CUI.Box(5), () =>
             {
-                if (!string.IsNullOrEmpty(_gitOutput))
+                _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
+
+                if (_gitOutputs.Count > 0)
                 {
-                    GUILayout.Label(_gitOutput, gitOutputStyle);
+                    for (int i = 0; i < _gitOutputs.Count; i++)
+                    {
+                        bool colorChanged = false;
+                        Color colorOrigin = Color.black;
+                        
+                        switch (_gitOutputs[i].status)
+                        {
+                            case GitOutputStatus.Error:
+                                colorChanged = true;
+                                colorOrigin = gitOutputStyle.normal.textColor;
+                                gitOutputStyle.normal.textColor = Color.red;
+                                break;
+                            case GitOutputStatus.Success:
+                                colorChanged = true;
+                                colorOrigin = gitOutputStyle.normal.textColor;
+                                gitOutputStyle.normal.textColor = Color.blue;
+                                break;
+                            case GitOutputStatus.Warning:
+                                colorChanged = true;
+                                colorOrigin = gitOutputStyle.normal.textColor;
+                                gitOutputStyle.normal.textColor = Color.magenta;
+                                break;
+                        }
+                        
+                        GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
+                        if (colorChanged) gitOutputStyle.normal.textColor = colorOrigin;
+                    }                    
                 }
 
-                if (!string.IsNullOrEmpty(_gitErrorOutput))
-                {
-                    CUILayout.ColorLabelField(_gitErrorOutput, Color.red, gitOutputStyle);
-                }
+                GUILayout.EndScrollView();
 
                 GUILayout.FlexibleSpace();
-
                 DrawCommandLineInput();
 
             }, GUILayout.MinHeight(120), GUILayout.MaxHeight(2000), GUILayout.ExpandHeight(true));
@@ -117,7 +142,7 @@ namespace CodeqoEditor
             {
                 _commandLine = GUILayout.TextField(_commandLine);
 
-                if (GUILayout.Button("Enter", GUILayout.Width(30f)))
+                if (GUILayout.Button(EditorIcon.Enter, GUILayout.Height(18f), GUILayout.Width(30f)))
                 {
                     EnterGitCommand();
                 }
@@ -147,7 +172,7 @@ namespace CodeqoEditor
                                               "Minor: 1.0.0 -> 1.1.0 \n" +
                                               "Major: 1.0.0 -> 2.0.0 \n";
 
-                    VersionTypePopup.ShowWindow(popupMessage, popupDescription, VersionType.Patch, (versionType) =>
+                    VersionTypePopup.ShowWindow(popupMessage, popupDescription, GitVersion.Patch, (versionType) =>
                     {
                         Push(versionType);
                     });
@@ -162,6 +187,12 @@ namespace CodeqoEditor
 
         async void EnterGitCommand()
         {
+            _commandLine = _commandLine.Trim();
+            if (string.IsNullOrEmpty(_commandLine))
+            {
+                _gitOutputs.Add(new GitOutput("Empty Command"));
+                return;
+            }
             await _git.RunGitCommandAsync(_commandLine);
             _commandLine = "";
         }
@@ -171,7 +202,7 @@ namespace CodeqoEditor
             await _git.PullAsync();
         }
 
-        async void Push(VersionType versionType)
+        async void Push(GitVersion versionType)
         {
             await _git.PushAsync(versionType);
         }

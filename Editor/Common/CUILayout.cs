@@ -111,7 +111,10 @@ namespace CodeqoEditor
         public static bool ButtonToggle(GUIContent content, bool value, Action<bool> onToggle = null, params GUILayoutOption[] options)
         {
             if (value) GUI.backgroundColor = new Color(0.5f, 0.9f, 0.9f);
-            if (GUILayout.Button(content, options))
+            GUIStyle style = new GUIStyle(GUI.skin.button);
+            style.padding = new RectOffset(4, 4, 4, 4);
+            
+            if (GUILayout.Button(content, style, options))
             {
                 value = !value;
                 onToggle?.Invoke(value);

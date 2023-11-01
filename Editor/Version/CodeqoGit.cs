@@ -5,12 +5,30 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine.Networking;
-using static CodeqoEditor.VersionInfo;
 using Debug = UnityEngine.Debug;
 
-namespace CodeqoEditor
+namespace CodeqoEditor.Git
 {
-    
+    public enum GitOutputStatus
+    {
+        Info,
+        Success,
+        Error,
+        Warning
+    }
+
+    public struct GitOutput
+    {
+        public string value;
+        public GitOutputStatus status;
+
+        public GitOutput(string value, GitOutputStatus status = 0)
+        {
+            this.value = value;
+            this.status = status;
+        }
+    }
+
     public class CodeqoGit
     {
         #region Status Checks
@@ -19,7 +37,8 @@ namespace CodeqoEditor
         #endregion
 
         private const string RAW_GIT_URL = "https://raw.githubusercontent.com";
-        private const string GIT_BRANCH = "main";
+        private const string GIT_BRANCH = "master";
+        private const string GIT_BRANCH_NAME = "main";
         public const string VERSION_FILENAME = "Version.txt";
         string LOCAL_VERSION_FILEPATH => Path.Combine(_workingDirectory, VERSION_FILENAME);
         string REMOTE_VERSION_FILEPATH
@@ -29,13 +48,12 @@ namespace CodeqoEditor
                 if (string.IsNullOrEmpty(_gitUrl)) return null;
                 string[] split = _gitUrl.Split('/');
                 string repoName = split[split.Length - 1].Replace(".git", "");
-                string repoOwner = split[split.Length - 2];   
-                return $"{RAW_GIT_URL}/{repoOwner}/{repoName}/{GIT_BRANCH}/{VERSION_FILENAME}";
+                string repoOwner = split[split.Length - 2];
+                return $"{RAW_GIT_URL}/{repoOwner}/{repoName}/{GIT_BRANCH_NAME}/{VERSION_FILENAME}";
             }
         }
 
-        public event Action<string> OnGitOutput;
-        public event Action<string> OnGitErrorOutput;
+        public event Action<GitOutput> OnGitOutput;
 
         private readonly string _workingDirectory;
         private readonly string _gitUrl; // should look like https://github.com/amaiichigopurin/CodeqoShared.git
@@ -64,10 +82,10 @@ namespace CodeqoEditor
         public async Task InitializeAsync()
         {
             _localVersion = VersionInfo.CreateFromFilePath(LOCAL_VERSION_FILEPATH);
-            
+
             try
             {
-                await InitializeGitRepositoryAsync();            
+                await InitializeGitRepositoryAsync();
                 await GetVersionInfoAsync();
                 await ValidateRemoteOrigin();
                 await ValidateBranch();
@@ -75,7 +93,7 @@ namespace CodeqoEditor
             catch (Exception e)
             {
                 Debug.LogError(e);
-            }       
+            }
         }
 
         async Task ValidateRemoteOrigin()
@@ -108,7 +126,7 @@ namespace CodeqoEditor
 
         public Task PullAsync() => RunGitCommandAsync("pull");
 
-        public async Task PushAsync(VersionType versionType)
+        public async Task PushAsync(GitVersion versionType)
         {
             _remoteVersion.IncrementBuild(LOCAL_VERSION_FILEPATH, versionType);
             await RunGitCommandAsync("add .");
@@ -139,6 +157,7 @@ namespace CodeqoEditor
         public async Task<string> RunGitCommandAsync(string command, bool returnOutput = false)
         {
             Debug.Log($"Running Git command: {command}");
+            OnGitOutput?.Invoke(new GitOutput(command));
 
             if (string.IsNullOrEmpty(_workingDirectory) || string.IsNullOrEmpty(_gitUrl))
             {
@@ -167,7 +186,7 @@ namespace CodeqoEditor
                     {
                         Debug.Log(args.Data);
                         outputBuilder.AppendLine(args.Data);
-                        OnGitOutput?.Invoke(args.Data);
+                        OnGitOutput?.Invoke(new GitOutput(args.Data, GitOutputStatus.Success));
                     }
                 };
 
@@ -177,7 +196,7 @@ namespace CodeqoEditor
                     {
                         Debug.LogError(args.Data);
                         errorBuilder.AppendLine(args.Data);
-                        OnGitErrorOutput?.Invoke(args.Data);
+                        OnGitOutput?.Invoke(new GitOutput(args.Data, GitOutputStatus.Error));
                     }
                 };
 
@@ -191,7 +210,7 @@ namespace CodeqoEditor
                 {
                     string error = $"Git command failed with exit code {process.ExitCode}";
                     Debug.LogError(error);
-                    OnGitErrorOutput?.Invoke(error);
+                    OnGitOutput?.Invoke(new GitOutput(error, GitOutputStatus.Error));
                     return null;
                 }
 
@@ -199,8 +218,9 @@ namespace CodeqoEditor
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Git command failed: {ex.Message}");
-                OnGitErrorOutput?.Invoke($"Git command failed: {ex.Message}");
+                string error = $"Git command failed: {ex.Message}";
+                Debug.LogError(error);
+                OnGitOutput?.Invoke(new GitOutput(error, GitOutputStatus.Error));
                 return null;
             }
         }
@@ -221,8 +241,9 @@ namespace CodeqoEditor
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Failed to initialize Git repository: {ex.Message}");
-                OnGitErrorOutput?.Invoke($"Failed to initialize Git repository: {ex.Message}");
+                string error = $"Failed to initialize Git repository:  {ex.Message}";
+                Debug.LogError(error);
+                OnGitOutput?.Invoke(new GitOutput(error, GitOutputStatus.Error));
             }
         }
 
@@ -234,7 +255,7 @@ namespace CodeqoEditor
                 Debug.LogError("Git URL is not set.");
                 return null;
             }
-            
+
             Debug.Log($"Downloading version file from: {path}");
             using UnityWebRequest webRequest = UnityWebRequest.Get(path);
             var operation = webRequest.SendWebRequest();
