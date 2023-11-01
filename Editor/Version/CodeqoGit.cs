@@ -127,10 +127,10 @@ namespace CodeqoEditor.Git
 
         public async Task PushAsync(GitVersion versionType)
         {
-            _remoteVersion.IncrementBuild(LOCAL_VERSION_FILEPATH, versionType);
             await RunGitCommandAsync("add .");
             await RunGitCommandAsync($"commit -m \"Version {_remoteVersion.Build}\"");
             await RunGitCommandAsync("push");
+            _remoteVersion.IncrementBuild(LOCAL_VERSION_FILEPATH, versionType);
         }
 
         public Task StatusAsync() => RunGitCommandAsync("status");

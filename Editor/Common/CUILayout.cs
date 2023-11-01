@@ -8,6 +8,9 @@ namespace CodeqoEditor
 {
     public partial class CUILayout
     {
+        private static Dictionary<string, GUIStyle> cachedStyles = new Dictionary<string, GUIStyle>();
+
+        
         public static void InfoVisitButton(string label, string url)
         {
             GUILayout.BeginHorizontal();
@@ -88,7 +91,19 @@ namespace CodeqoEditor
             GUILayout.EndHorizontal();
             return p.boolValue;
         }
+        
+        public static void SpriteField(SerializedProperty p, int size, int topMargin)
+        {
+            GUILayout.BeginVertical();
+            GUILayout.Space(topMargin);
+            p.objectReferenceValue = EditorGUILayout.ObjectField(p.objectReferenceValue, typeof(Sprite), false, new GUILayoutOption[] {
+                    GUILayout.Width(size),
+                    GUILayout.Height(size)
+                }); ;
+            GUILayout.EndVertical();
+        }
 
+        #region Toggle
         public static bool Toggle(string label, bool value)
         {
             GUILayout.BeginHorizontal();
@@ -106,7 +121,9 @@ namespace CodeqoEditor
             GUILayout.EndHorizontal();
             return value;
         }
+        #endregion
 
+        #region ButtonToggle
         public static bool ButtonToggle(GUIContent content, bool value, params GUILayoutOption[] options)
         {
             if (value) GUI.backgroundColor = new Color(0.5f, 0.9f, 0.9f);
@@ -122,59 +139,43 @@ namespace CodeqoEditor
             => ButtonToggle(new GUIContent(label), value, options);
         public static bool ButtonToggle(Texture2D tex, bool value, params GUILayoutOption[] options)
             => ButtonToggle(new GUIContent(tex), value, options);
+        #endregion
 
-        public static void SpriteField(SerializedProperty p, int size, int topMargin)
+        #region BoxedLabel
+        private static GUIStyle GetCachedBoxStyle(TextAnchor alignment, CUIColor color = CUIColor.None)
         {
-            GUILayout.BeginVertical();
-            GUILayout.Space(topMargin);
-            p.objectReferenceValue = EditorGUILayout.ObjectField(p.objectReferenceValue, typeof(Sprite), false, new GUILayoutOption[] {
-                    GUILayout.Width(size),
-                    GUILayout.Height(size)
-                }); ;
-            GUILayout.EndVertical();
+            string key = $"{alignment}_{color}";
+            if (!cachedStyles.TryGetValue(key, out var style))
+            {
+                style = new GUIStyle
+                {
+                    border = new RectOffset(5, 5, 5, 5),
+                    margin = new RectOffset(0, 0, 0, 0),
+                    padding = new RectOffset(6, 6, 2, 2),
+                    fontSize = 12,
+                    normal = { background = EditorTexture.Box(color) },
+                    overflow = new RectOffset(0, 0, 0, 0),
+                    alignment = alignment,
+                    wordWrap = true
+                };
+                cachedStyles[key] = style;
+            }
+            return style;
         }
 
-        static GUIStyle BoxedLabel(TextAnchor alignment, CUIColor color = CUIColor.None)
-        {
-            GUIStyle box = new GUIStyle();
-            //box.border = new RectOffset(10, 10, 10, 10);
-            box.border = new RectOffset(5, 5, 5, 5);
-            box.margin = new RectOffset(0, 0, 0, 0);
-            box.padding = new RectOffset(6, 6, 2, 2);
-            box.fontSize = 12;
-            box.normal.background = EditorTexture.Box(color);
-            box.overflow = new RectOffset(0, 0, 0, 0);
-            box.alignment = alignment;
-            //line break true
-            box.wordWrap = true;
-            return box;
-        }
+        public static void BoxedLabel(GUIContent label, TextAnchor alignment, params GUILayoutOption[] options)        
+            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(alignment), options);   
+        public static void BoxedLabel(GUIContent label, TextAnchor alignment, CUIColor color, params GUILayoutOption[] options)        
+            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(alignment, color), options);
+        public static void BoxedLabel(string label, TextAnchor alignment, params GUILayoutOption[] options)        
+           => EditorGUILayout.LabelField(label, GetCachedBoxStyle(alignment), options);
+        public static void BoxedLabel(GUIContent label, params GUILayoutOption[] options)        
+            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);   
+        public static void BoxedLabel(string label, params GUILayoutOption[] options)             
+            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);        
+        #endregion               
 
-        public static void BoxedLabel(GUIContent label, TextAnchor alignment, params GUILayoutOption[] options)
-        {
-            EditorGUILayout.LabelField(label, BoxedLabel(alignment), options);
-        }
-
-        public static void BoxedLabel(GUIContent label, TextAnchor alignment, CUIColor color, params GUILayoutOption[] options)
-        {
-            EditorGUILayout.LabelField(label, BoxedLabel(alignment, color), options);
-        }
-
-        public static void BoxedLabel(string label, TextAnchor alignment, params GUILayoutOption[] options)
-        {
-            EditorGUILayout.LabelField(label, BoxedLabel(alignment), options);
-        }
-
-        public static void BoxedLabel(GUIContent label, params GUILayoutOption[] options)
-        {
-            EditorGUILayout.LabelField(label, BoxedLabel(TextAnchor.MiddleCenter), options);
-        }
-
-        public static void BoxedLabel(string label, params GUILayoutOption[] options)
-        {
-            EditorGUILayout.LabelField(label, BoxedLabel(TextAnchor.MiddleCenter), options);
-        }
-
+        #region OtherLabel
         public static void CenteredLabel(GUIContent label, int fontSize = 10)
         {
             var centeredStyle = new GUIStyle();
@@ -187,16 +188,6 @@ namespace CodeqoEditor
             centeredStyle.alignment = TextAnchor.UpperLeft;
         }
 
-        public static void ColoredLabelField(Rect rect, string label, Color color, bool bold = true)
-        {
-            var colorStyle = new GUIStyle();
-            Color saveColor = colorStyle.normal.textColor;
-            if (bold) colorStyle = EditorStyles.boldLabel;
-            colorStyle.normal.textColor = color;
-            EditorGUI.LabelField(rect, label, colorStyle);
-            colorStyle.normal.textColor = saveColor;
-        }
-
         public static void ColorLabelField(string label, Color color, bool bold = true)
         {
             var colorStyle = new GUIStyle();
@@ -207,24 +198,9 @@ namespace CodeqoEditor
             EditorGUILayout.LabelField(label, colorStyle);
             colorStyle.normal.textColor = saveColor;
         }
+        #endregion
 
         #region Horizontal/VerticalLayout
-        public static void HorizontalLayout(GUIContent label, Action action, params GUILayoutOption[] options)
-        {
-            GUILayout.BeginHorizontal(options);
-            EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
-            action();
-            GUILayout.EndHorizontal();
-        }
-
-        public static void VerticalLayout(GUIContent label, Action action, params GUILayoutOption[] options)
-        {
-            GUILayout.BeginVertical(options);
-            EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
-            action();
-            GUILayout.EndVertical();
-        }
-
         public static void HorizontalLayout(Action action, params GUILayoutOption[] options)
         {
             GUILayout.BeginHorizontal(options);
@@ -359,11 +335,36 @@ namespace CodeqoEditor
         }
 
         #endregion
+        
+        #region ColorButton        
+        public static bool ColorButton(GUIContent content, Color backgroundColor, Color textColor, GUIStyle style = null, params GUILayoutOption[] options)
+        {
+            GUIStyle buttonStyle = new GUIStyle(style ?? GUI.skin.button);
+            buttonStyle.normal.textColor = textColor;
+            buttonStyle.normal.background = CUI.CreateColorTexture(backgroundColor);
+            buttonStyle.hover.background = CUI.CreateColorTexture(backgroundColor * 1.1f); // Slightly brighter when hovered
+            buttonStyle.active.background = CUI.CreateColorTexture(backgroundColor * 0.9f); // Slightly darker when clicked
 
+            return GUILayout.Button(content, buttonStyle, options);
+        }
 
+        public static bool ColorButton(GUIContent content, Color color, GUIStyle style, params GUILayoutOption[] options)
+            => ColorButton(content, color, Color.black, style, options);
+        public static bool ColorButton(string label, Color color, GUIStyle style, params GUILayoutOption[] options)
+            => ColorButton(new GUIContent(label), color, style, options);
+        public static bool ColorButton(string label, Color color, Color textColor, GUIStyle style, params GUILayoutOption[] options)
+            => ColorButton(new GUIContent(label), color, textColor, style, options);
+        public static bool ColorButton(GUIContent content, Color color, params GUILayoutOption[] options)
+            => ColorButton(content, color, Color.black, null, options);
+        public static bool ColorButton(string label, Color color, params GUILayoutOption[] options)
+            => ColorButton(new GUIContent(label), color, options);
+        public static bool ColorButton(string label, Color color, Color textColor, params GUILayoutOption[] options)
+            => ColorButton(new GUIContent(label), color, textColor, null, options);
+        public static bool ColorButton(GUIContent content, Color color, Color textColor, params GUILayoutOption[] options)
+            => ColorButton(content, color, textColor, null, options);
+        #endregion
 
-        #region ColoredButton
-
+        #region ColorSelectToolbar
         public static Color ColorSelectToolbar(GUIContent content, List<Color> colorList, Color selectedColor)
         {
             Color defaultColor = GUI.backgroundColor;
@@ -399,50 +400,9 @@ namespace CodeqoEditor
 
         public static Color ColorSelectToolbar(string label, List<Color> colorList, Color selectedColor)
             => ColorSelectToolbar(new GUIContent(label), colorList, selectedColor);
-
-
-        public static bool ColorButton(GUIContent content, Color color, Color textColor, GUIStyle style, params GUILayoutOption[] options)
-        {
-            Color defaultColor = GUI.backgroundColor;
-            GUI.backgroundColor = color;
-            Color defaultTextColor = GUI.contentColor;
-            GUI.contentColor = textColor;
-
-            if (style == null)
-            {
-                style = GUI.skin.button;
-            }
-
-            bool result = GUILayout.Button(content, style, options);
-            GUI.backgroundColor = defaultColor;
-            GUI.contentColor = defaultTextColor;
-            return result;
-        }
-
-        public static bool ColorButton(GUIContent content, Color color, GUIStyle style, params GUILayoutOption[] options)
-            => ColorButton(content, color, Color.black, style, options);
-        public static bool ColorButton(string label, Color color, GUIStyle style, params GUILayoutOption[] options)
-            => ColorButton(new GUIContent(label), color, style, options);
-        public static bool ColorButton(string label, Color color, Color textColor, GUIStyle style, params GUILayoutOption[] options)
-            => ColorButton(new GUIContent(label), color, textColor, style, options);
-        public static bool ColorButton(GUIContent content, Color color, params GUILayoutOption[] options)
-            => ColorButton(content, color, Color.black, null, options);
-        public static bool ColorButton(string label, Color color, params GUILayoutOption[] options)
-            => ColorButton(new GUIContent(label), color, options);
-        public static bool ColorButton(string label, Color color, Color textColor, params GUILayoutOption[] options)
-            => ColorButton(new GUIContent(label), color, textColor, null, options);
-        public static bool ColorButton(GUIContent content, Color color, Color textColor, params GUILayoutOption[] options)
-            => ColorButton(content, color, textColor, null, options);
-
-
         #endregion
 
         #region ListDropdownField
-
-        public static string ListDropdownField(string currentValue, List<string> list, GUIContent label = null, params GUILayoutOption[] options)
-            => GenericDropdownField(currentValue, list, label, options);
-        public static string ListDropdownField(string currentValue, string[] array, GUIContent label = null, params GUILayoutOption[] options)
-            => GenericDropdownField(currentValue, array, label, options);
         private static T GenericDropdownField<T>(T currentValue, IList<T> list, GUIContent label = null, params GUILayoutOption[] options)
         {
             if (list == null || list.Count == 0)
@@ -463,7 +423,14 @@ namespace CodeqoEditor
             if (index < 0) index = 0;
             return list[index];
         }
+        
+        public static string ListDropdownField(string currentValue, List<string> list, GUIContent label = null, params GUILayoutOption[] options)
+            => GenericDropdownField(currentValue, list, label, options);
+        public static string ListDropdownField(string currentValue, string[] array, GUIContent label = null, params GUILayoutOption[] options)
+            => GenericDropdownField(currentValue, array, label, options);
+        #endregion
 
+        #region ListToolbarField
         public static int ListToolbarField(int currentId, List<string> list, GUIContent label = null, params GUILayoutOption[] options)
         {
             if (list == null || list.Count == 0)
@@ -511,13 +478,8 @@ namespace CodeqoEditor
 
             return index;
         }
-
-
-
-
-
-
         #endregion
+
         public static T EnumFlagButtons<T>(T enumValue, int startIndex = 1, params GUILayoutOption[] options) where T : Enum
         {
             // Get all values and names of the Enum
@@ -730,9 +692,6 @@ namespace CodeqoEditor
 
             return newText;
         }
-
-
-
     }
 }
 

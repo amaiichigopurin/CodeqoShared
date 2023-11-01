@@ -179,7 +179,7 @@ namespace CodeqoEditor.Git
                 }
             }
 
-            if (GUILayout.Button("Update Git Status"))
+            if (GUILayout.Button("Git Status"))
             {
                 Status();
             }
