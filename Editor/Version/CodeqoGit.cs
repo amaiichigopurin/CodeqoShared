@@ -38,7 +38,6 @@ namespace CodeqoEditor.Git
 
         private const string RAW_GIT_URL = "https://raw.githubusercontent.com";
         private const string GIT_BRANCH = "master";
-        private const string GIT_BRANCH_NAME = "main";
         public const string VERSION_FILENAME = "Version.txt";
         string LOCAL_VERSION_FILEPATH => Path.Combine(_workingDirectory, VERSION_FILENAME);
         string REMOTE_VERSION_FILEPATH
@@ -49,7 +48,7 @@ namespace CodeqoEditor.Git
                 string[] split = _gitUrl.Split('/');
                 string repoName = split[split.Length - 1].Replace(".git", "");
                 string repoOwner = split[split.Length - 2];
-                return $"{RAW_GIT_URL}/{repoOwner}/{repoName}/{GIT_BRANCH_NAME}/{VERSION_FILENAME}";
+                return $"{RAW_GIT_URL}/{repoOwner}/{repoName}/{GIT_BRANCH}/{VERSION_FILENAME}";
             }
         }
 

@@ -2,11 +2,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-
 namespace CodeqoEditor.Git
 {
-
-
     public abstract class GitWindow : PaddedEditorWindow
     {
         protected abstract string GIT_URL { get; }
@@ -23,7 +20,13 @@ namespace CodeqoEditor.Git
         int _gitOutputUpdated = 0;
         bool _initialized = false;
 
-
+        private Dictionary<GitOutputStatus, Color> gitOutputColors = new Dictionary<GitOutputStatus, Color>
+        {
+            { GitOutputStatus.Error, Color.red },
+            { GitOutputStatus.Success, Color.blue },
+            { GitOutputStatus.Warning, Color.magenta }
+        };
+        
         async void OnEnable()
         {
             if (string.IsNullOrEmpty(GIT_URL))
@@ -64,6 +67,16 @@ namespace CodeqoEditor.Git
                 return;
             }
 
+
+            if (_git.PullAvailable)
+            {
+                EditorGUILayout.HelpBox("New version available. Please download the latest version.", MessageType.Warning);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("You are up to date with the latest version.", MessageType.Info);
+            }            
+
             DrawGitPanel();
             DrawButtons();
 
@@ -90,42 +103,18 @@ namespace CodeqoEditor.Git
 
         void DrawGitPanel()
         {
-            GUIStyle gitOutputStyle = GUI.skin.label;
-            gitOutputStyle.wordWrap = true;
+            GUIStyle gitOutputStyle = new GUIStyle(GUI.skin.label)
+            {
+                wordWrap = true
+            };
 
             CUILayout.VerticalLayout(CUI.Box(5), () =>
             {
                 _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
 
-                if (_gitOutputs.Count > 0)
+                foreach (var gitOutput in _gitOutputs)
                 {
-                    for (int i = 0; i < _gitOutputs.Count; i++)
-                    {
-                        bool colorChanged = false;
-                        Color colorOrigin = Color.black;
-                        
-                        switch (_gitOutputs[i].status)
-                        {
-                            case GitOutputStatus.Error:
-                                colorChanged = true;
-                                colorOrigin = gitOutputStyle.normal.textColor;
-                                gitOutputStyle.normal.textColor = Color.red;
-                                break;
-                            case GitOutputStatus.Success:
-                                colorChanged = true;
-                                colorOrigin = gitOutputStyle.normal.textColor;
-                                gitOutputStyle.normal.textColor = Color.blue;
-                                break;
-                            case GitOutputStatus.Warning:
-                                colorChanged = true;
-                                colorOrigin = gitOutputStyle.normal.textColor;
-                                gitOutputStyle.normal.textColor = Color.magenta;
-                                break;
-                        }
-                        
-                        GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
-                        if (colorChanged) gitOutputStyle.normal.textColor = colorOrigin;
-                    }                    
+                    DrawGitOutput(gitOutput, gitOutputStyle);
                 }
 
                 GUILayout.EndScrollView();
@@ -134,6 +123,22 @@ namespace CodeqoEditor.Git
                 DrawCommandLineInput();
 
             }, GUILayout.MinHeight(120), GUILayout.MaxHeight(2000), GUILayout.ExpandHeight(true));
+        }
+
+        void DrawGitOutput(GitOutput gitOutput, GUIStyle gitOutputStyle)
+        {
+            if (gitOutputColors.TryGetValue(gitOutput.status, out Color color))
+            {
+                GUIStyle coloredStyle = new GUIStyle(gitOutputStyle)
+                {
+                    normal = { textColor = color }
+                };
+                GUILayout.Label(gitOutput.value, coloredStyle);
+            }
+            else
+            {
+                GUILayout.Label(gitOutput.value, gitOutputStyle);
+            }
         }
 
         void DrawCommandLineInput()
@@ -152,14 +157,9 @@ namespace CodeqoEditor.Git
 
         void DrawButtons()
         {
-            if (_git.PullAvailable)
+            if (GUILayout.Button("Download (Git Pull)"))
             {
-                EditorGUILayout.HelpBox("New version available. Please download the latest version.", MessageType.Warning);
-
-                if (GUILayout.Button("Download (Git Pull)"))
-                {
-                    Pull();
-                }
+                Pull();
             }
 
             if (GUILayout.Button("Upload (Git Push)"))
