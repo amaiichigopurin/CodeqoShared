@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce213ba81632e744e8c985652591e328, type: 3}
+  m_Name: EditorIcon
+  m_EditorClassIdentifier: 
+  play: {fileID: 2800000, guid: 3f105908a6fe1704ab8a81ca14e44ec8, type: 3}
+  pause: {fileID: 2800000, guid: 14af04a167eb636448c48f06d0d3c001, type: 3}
+  stop: {fileID: 2800000, guid: dea2d581881b48845adc64e120e6072a, type: 3}
+  next: {fileID: 2800000, guid: 6cfd46e90174fc247abd4126862aa8a1, type: 3}
+  previous: {fileID: 2800000, guid: 2a9b93a156f2e704aaf3193547d2ada9, type: 3}
+  fastForward: {fileID: 2800000, guid: 305d18d68d6cdc24a89fff868d3ceba8, type: 3}
+  rewind: {fileID: 2800000, guid: 0e409c4851804b14b90d74f3ed82433a, type: 3}
+  volume: {fileID: 2800000, guid: 15ef564ad3c5d4f48a18ac9673f19314, type: 3}
+  seekBar: {fileID: 2800000, guid: 5f19d07a300d3d347838ed4f183ff0df, type: 3}
+  shuffle: {fileID: 2800000, guid: 76f00d20d84727646a6d859023d3659e, type: 3}
+  repeat: {fileID: 2800000, guid: e5b0825a1fd6ff04bb30753bcdfcdba6, type: 3}
+  repeatOne: {fileID: 2800000, guid: 45142437a1ebd2b4fa6f8c052696aabe, type: 3}
+  close: {fileID: 2800000, guid: 023495fef3e3fce4d8db81f584fc2cff, type: 3}
+  textDefault: {fileID: 2800000, guid: c04fb0020409ece4bab07cdfcdcc70d8, type: 3}
+  textDescription: {fileID: 2800000, guid: 4fc58c6a20ec02c4fa5f06ec1155a10d, type: 3}
+  textTitle: {fileID: 2800000, guid: 4edda4066659b524b90763aa3149dbcd, type: 3}
+  phone: {fileID: 2800000, guid: b3dc719727ad5e742b1a3930b7b67762, type: 3}
