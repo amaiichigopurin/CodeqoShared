@@ -4,11 +4,11 @@ namespace CodeqoEditor
 {
     [CreateAssetMenu(fileName = "EditorTexture", menuName = "Codeqo/Editor/EditorTexture")]
     public class EditorTexture : ScriptableObject
-    {
+    {        
         [Header("Box")]
         public EditorTexture2D boxDefault;
         public Texture2D boxGreen;
-        public Texture2D boxYellow;
+        public Texture2D boxYellow;      
         public Texture2D boxOrange;
         public Texture2D boxPuple;
         public Texture2D boxBlue;
@@ -33,8 +33,7 @@ namespace CodeqoEditor
         public Texture2D config;
         public Texture2D background;
         public Texture2D noImageHighRes;
-        public Texture2D android12Circle;
-
+        
 
         private static EditorTexture instance;
         public static EditorTexture Instance
@@ -56,7 +55,6 @@ namespace CodeqoEditor
         public static Texture2D Config => Instance.config;
         public static Texture2D Background => Instance.background;
         public static Texture2D NoImageHighRes => Instance.noImageHighRes;
-        public static Texture2D Android12Circle => Instance.android12Circle;
 
         public static Texture2D Box(CUIColor color = 0)
         {
