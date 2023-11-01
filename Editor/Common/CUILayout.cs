@@ -1,5 +1,8 @@
+using Glitch9;
+using Glitch9.Utility;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -14,9 +17,12 @@ namespace CodeqoEditor
 
             EditorGUILayout.HelpBox(
                 "More information about " + label
-                , MessageType.None);
+                , MessageType.Info);
 
-            if (GUILayout.Button("Visit", GUILayout.Width(50)))
+            if (GUILayout.Button("Visit", new GUILayoutOption[] {
+                GUILayout.Width(50),
+                GUILayout.ExpandHeight(true)
+                }))
             {
                 Application.OpenURL(url);
             }
@@ -26,34 +32,30 @@ namespace CodeqoEditor
 
         public static void Foldout(string label, Action callback)
         {
-            float stroke = 1.2f;
-            float padding = 3f; // space between the strokes and the content
-            
-            CUIUtility.DrawHorizontalLine(stroke);
-            GUILayout.Space(padding);
+            // draw lines on top and bottom of the foldout label
+            CUIUtility.DrawHorizontalLine(1);
+            GUILayout.Space(5);
             bool b = EditorPrefs.GetBool(label, true);
             b = EditorGUILayout.Foldout(b, label);
             EditorPrefs.SetBool(label, b);
 
             if (b)
             {
-                GUILayout.Space(padding);
-                CUIUtility.DrawHorizontalLine(stroke);
+                GUILayout.Space(5);
+                CUIUtility.DrawHorizontalLine(1);
 
-                GUIStyle contentStyle = new GUIStyle();
-                contentStyle.margin = new RectOffset(0, 10, 5, 20);
+                GUIStyle style = new GUIStyle();
+                style.margin = new RectOffset(0, 0, 10, 10);
 
-                GUILayout.BeginVertical(contentStyle);
+                GUILayout.BeginVertical(style);
                 callback?.Invoke();
                 GUILayout.EndVertical();
             }
             else
             {
-                GUILayout.Space(padding);
-                CUIUtility.DrawHorizontalLine(stroke);
+                GUILayout.Space(5);
+                CUIUtility.DrawHorizontalLine(1);
             }
-
-            GUILayout.Space(-padding);
         }
 
         public static void BoxedLayout(string label, Action callback, Texture2D texture = null)
@@ -108,13 +110,10 @@ namespace CodeqoEditor
             return value;
         }
 
-        public static bool ButtonToggle(GUIContent content, bool value, Action<bool> onToggle = null, params GUILayoutOption[] options)
+        public static bool ButtonToggle(GUIContent content, bool value, Action<bool> onToggle, params GUILayoutOption[] options)
         {
             if (value) GUI.backgroundColor = new Color(0.5f, 0.9f, 0.9f);
-            GUIStyle style = new GUIStyle(GUI.skin.button);
-            style.padding = new RectOffset(4, 4, 4, 4);
-            
-            if (GUILayout.Button(content, style, options))
+            if (GUILayout.Button(content, options))
             {
                 value = !value;
                 onToggle?.Invoke(value);
@@ -123,11 +122,16 @@ namespace CodeqoEditor
             return value;
         }
         
-        public static bool ButtonToggle(string label, bool value, Action<bool> onToggle = null, params GUILayoutOption[] options)
-            => ButtonToggle(new GUIContent(label), value, onToggle, options);
-        
-        public static bool ButtonToggle(Texture2D tex, bool value, Action<bool> onToggle = null, params GUILayoutOption[] options)
+        public static bool ButtonToggle(string label, bool value, Action<bool> onToggle, params GUILayoutOption[] options)
+            => ButtonToggle(new GUIContent(label), value, onToggle, options);        
+        public static bool ButtonToggle(Texture2D tex, bool value, Action<bool> onToggle, params GUILayoutOption[] options)
             => ButtonToggle(new GUIContent(tex), value, onToggle, options);
+        public static bool ButtonToggle(GUIContent content, bool value, params GUILayoutOption[] options)
+            => ButtonToggle(content, value, null, options);
+        public static bool ButtonToggle(string label, bool value, params GUILayoutOption[] options)
+            => ButtonToggle(new GUIContent(label), value, null, options);
+        public static bool ButtonToggle(Texture2D tex, bool value, params GUILayoutOption[] options)
+            => ButtonToggle(new GUIContent(tex), value, null, options);
 
         public static void SpriteField(SerializedProperty p, int size, int topMargin)
         {
@@ -193,17 +197,26 @@ namespace CodeqoEditor
             centeredStyle.alignment = TextAnchor.UpperLeft;
         }
 
-        public static void ColorLabelField(string label, Color color, GUIStyle style, params GUILayoutOption[] options)
+        public static void ColoredLabelField(Rect rect, string label, Color color, bool bold = true)
         {
-            Color saveColor = style.normal.textColor;
-            style.normal.textColor = color;
-            style.alignment = TextAnchor.MiddleLeft;
-            EditorGUILayout.LabelField(label, style, options);
-            style.normal.textColor = saveColor;
+            var colorStyle = new GUIStyle();
+            Color saveColor = colorStyle.normal.textColor;
+            if (bold) colorStyle = EditorStyles.boldLabel;
+            colorStyle.normal.textColor = color;
+            EditorGUI.LabelField(rect, label, colorStyle);
+            colorStyle.normal.textColor = saveColor;
         }
 
-        public static void ColorLabelField(string label, Color color, params GUILayoutOption[] options)
-            => ColorLabelField(label, color, EditorStyles.label, options);
+        public static void ColorLabelField(string label, Color color, bool bold = true)
+        {
+            var colorStyle = new GUIStyle();
+            Color saveColor = colorStyle.normal.textColor;
+            if (bold) colorStyle = EditorStyles.boldLabel;
+            colorStyle.normal.textColor = color;
+            colorStyle.alignment = TextAnchor.MiddleLeft;
+            EditorGUILayout.LabelField(label, colorStyle);
+            colorStyle.normal.textColor = saveColor;
+        }
 
         #region Horizontal/VerticalLayout
         public static void HorizontalLayout(GUIContent label, Action action, params GUILayoutOption[] options)
@@ -354,6 +367,19 @@ namespace CodeqoEditor
             EditorGUILayout.EndHorizontal();
             return new DateTime(YY, MM, DD, hh, mm, ss);
         }
+
+        public static GNTime GNTimeField(string label, GNTime gnTime, params GUILayoutOption[] options)
+        {
+            GNTime result = new GNTime();
+            GUILayout.BeginHorizontal(options);
+            float labelWidth = EditorGUIUtility.labelWidth;
+            EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+            result.hour = EditorGUILayout.IntField(gnTime.hour, GUILayout.Width(30));
+            GUILayout.Label(":", GUILayout.Width(10));
+            result.minute = EditorGUILayout.IntField(gnTime.minute, GUILayout.Width(30));
+            GUILayout.EndHorizontal();
+            return result;
+        }
         #endregion
 
 
@@ -448,19 +474,9 @@ namespace CodeqoEditor
             }
 
             int index = list.IndexOf(currentValue);
-            index = EditorGUILayout.Popup(label, index, ToStringArray(list), options);
+            index = EditorGUILayout.Popup(label, index, list.ToStringArray(), options);
             if (index < 0) index = 0;
             return list[index];
-        }
-
-        private static string[] ToStringArray<T>(IList<T> list)
-        {
-            string[] result = new string[list.Count];
-            for (int i = 0; i < list.Count; i++)
-            {
-                result[i] = list[i]?.ToString() ?? "null";
-            }
-            return result;
         }
 
         public static int ListToolbarField(int currentId, List<string> list, GUIContent label = null, params GUILayoutOption[] options)
@@ -585,16 +601,10 @@ namespace CodeqoEditor
             return false;
         }
 
-        public static HashSet<TEnum> DrawEnumCheckboxes<TEnum>(HashSet<TEnum> selectedValues, int columns = 3, float width = -1f) where TEnum : Enum
+        public static bool DrawEnumCheckboxes<T>(IList<T> allValues, IDictionary<T, bool> checkDictionary, int columns = 3, int defaultValue = -1) where T : Enum
         {
-            if (width < 0)
-            {
-                width = EditorGUIUtility.currentViewWidth / columns - 10;
-            }
-
             bool updated = false;
-            TEnum[] enumValues = (TEnum[])Enum.GetValues(typeof(TEnum));
-            int rowCount = Mathf.CeilToInt((float)enumValues.Length / columns);
+            int rowCount = Mathf.CeilToInt((float)allValues.Count / columns);
 
             for (int row = 0; row < rowCount; row++)
             {
@@ -604,24 +614,25 @@ namespace CodeqoEditor
                 {
                     int index = row * columns + col;
 
-                    if (index < enumValues.Length)
+                    if (index < allValues.Count)
                     {
-                        TEnum enumValue = enumValues[index];
+                        T value = allValues[index];
 
-                        bool isCurrentlySelected = selectedValues.Contains(enumValue);
-                        bool toggle = EditorGUILayout.ToggleLeft(enumValue.ToString(), isCurrentlySelected, GUILayout.Width(width));
-
-                        if (toggle != isCurrentlySelected)
+                        bool isOn = checkDictionary[value];
+                        bool isDefault = defaultValue != -1 && Convert.ToInt32(value) == defaultValue;
+                        string label = isDefault ? value.ToString() + " (Default)" : value.ToString();
+                        
+                        bool toggle = EditorGUILayout.ToggleLeft(label, isOn, GUILayout.Width(EditorGUIUtility.currentViewWidth / columns - 10));
+                                            
+                        if (defaultValue != -1)
                         {
-                            if (toggle)
-                            {
-                                selectedValues.Add(enumValue);
-                            }
-                            else
-                            {
-                                selectedValues.Remove(enumValue);
-                            }
+                            int enumIndex = Convert.ToInt32(value);
+                            if (enumIndex == defaultValue && !isOn) toggle = true;
+                        }
 
+                        if (toggle != isOn)
+                        {
+                            checkDictionary[value] = toggle;
                             updated = true;
                         }
                     }
@@ -630,14 +641,113 @@ namespace CodeqoEditor
                 EditorGUILayout.EndHorizontal();
             }
 
-            if (updated)
+            return updated;
+        }
+
+        public static bool EnumPropertyFieldWithExclusion<T>(SerializedProperty enumProperty, IList<T> toExclude, GUIContent label = null, params GUILayoutOption[] options)
+                where T : Enum
+        {
+            if (enumProperty == null)
             {
-                // 이 부분에 필요한 경우 업데이트 로직을 추가할 수 있습니다.
-                Debug.Log("Selection Updated");
+                throw new ArgumentNullException(nameof(enumProperty));
             }
 
-            return selectedValues;
+            if (enumProperty.propertyType != SerializedPropertyType.Enum)
+            {
+                throw new ArgumentException($"Property {enumProperty.name} is not an enum.");
+            }
+
+            if (toExclude == null)
+            {
+                throw new ArgumentNullException(nameof(toExclude));
+            }
+
+            T[] allValues = (T[])Enum.GetValues(typeof(T));
+            List<GUIContent> displayedOptions = new List<GUIContent>();
+            List<int> optionValues = new List<int>();
+
+            T enumValue = (T)Enum.ToObject(typeof(T), enumProperty.intValue);
+
+            for (int i = 0; i < allValues.Length; i++)
+            {
+                if (!toExclude.Contains(allValues[i]) || allValues[i].Equals(enumValue))
+                {
+                    displayedOptions.Add(new GUIContent(allValues[i].ToString()));
+                    optionValues.Add(Convert.ToInt32(allValues[i]));
+                }
+            }
+
+            int currentIndex = Array.IndexOf(allValues, enumValue);
+            int newIndex = EditorGUILayout.IntPopup(label, currentIndex, displayedOptions.ToArray(), optionValues.ToArray(), options);
+
+            if (newIndex != currentIndex)
+            {
+                enumProperty.intValue = newIndex;
+                return true;
+            }
+            
+            return false;
         }
+
+        public static bool EnumPopupWithExclusion<T>(T currentEnum, IList<T> toExclude, out T selectedEnum, GUIContent label = null, params GUILayoutOption[] options) where T : Enum
+        {
+            if (toExclude == null)
+            {
+                throw new ArgumentNullException(nameof(toExclude));
+            }
+
+            T[] allValues = (T[])Enum.GetValues(typeof(T));
+            List<GUIContent> displayedOptions = new List<GUIContent>();
+            List<T> optionValues = new List<T>();
+
+            for (int i = 0; i < allValues.Length; i++)
+            {
+                if (!toExclude.Contains(allValues[i]) || EqualityComparer<T>.Default.Equals(allValues[i], currentEnum))
+                {
+                    displayedOptions.Add(new GUIContent(allValues[i].ToString()));
+                    optionValues.Add(allValues[i]);
+                }
+            }
+
+            int currentIndex = optionValues.IndexOf(currentEnum);
+            int newIndex = EditorGUILayout.Popup(label ?? GUIContent.none, currentIndex, displayedOptions.ToArray(), options);
+
+            selectedEnum = optionValues[newIndex];
+
+            return newIndex != currentIndex;
+        }
+
+
+        public static string TextArea(string text, Object assetToSave, params GUILayoutOption[] options)
+           => TextArea(text, assetToSave, null, options); 
+        
+        public static string TextArea(string text, Object assetToSave, GUIStyle style, params GUILayoutOption[] options)
+        {
+            if (assetToSave == null)
+            {
+                throw new ArgumentNullException(nameof(assetToSave));
+            }
+
+            if (style == null)
+            {
+                style = EditorStyles.textArea;
+            }
+
+            CUI.CurrentField = assetToSave.GetHashCode().ToString();
+
+            string newText = EditorGUILayout.TextArea(text, style, options);
+
+            if (CUI.CurrentField != CUI.CurrentField && newText != text)
+            {
+                Undo.RecordObject(assetToSave, $"Update {assetToSave.name}");
+                EditorUtility.SetDirty(assetToSave);
+            }
+
+            return newText;
+        }
+
+  
+
     }
 }
 

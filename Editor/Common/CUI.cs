@@ -1,12 +1,26 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+
 
 namespace CodeqoEditor
 {
     public static class CUI
     {
         public static GUISkin skin => EditorSkin.skin;
+        public static string CurrentField
+        {
+            get => EditorPrefs.GetString("CUI.CurrentField", "");
+            set
+            {
+                EditorPrefs.SetString("CUI.CurrentField", value);
+                GUI.SetNextControlName(value);
+            }
+        }
+        public static string GetFocus() => GUI.GetNameOfFocusedControl();
+
 
         public static Rect GetHeaderRect(Rect r, float indent = 10, float margin = 6, float width = 22, float height = 22)
         {
@@ -99,10 +113,6 @@ namespace CodeqoEditor
             return b;
         }
 
-        public static void DrawTexture(Rect textureRect, Texture2D texture)
-        {
-            GUI.DrawTexture(textureRect, texture, ScaleMode.ScaleToFit, true, 0, Color.white, 0, 0);
-        }
 
         public static void ColorLabelField(Rect rect, string label, Color color, bool bold = true)
         {
@@ -113,5 +123,49 @@ namespace CodeqoEditor
             EditorGUI.LabelField(rect, label, colorStyle);
             colorStyle.normal.textColor = saveColor;
         }
+
+
+        public static void DrawTexture(Rect textureRect, Texture2D texture)
+        {
+            GUI.DrawTexture(textureRect, texture, ScaleMode.ScaleToFit, true, 0, Color.white, 0, 0);
+        }
+        public static void DrawContent(Rect textureRect, GUIContent content)
+        {
+            GUI.DrawTexture(textureRect, content.image, ScaleMode.ScaleToFit, true, 0, Color.white, 0, 0);
+        }
+
+
+
+        public static string ListDropdownField(Rect rect, string currentValue, List<string> list, GUIContent label = null)
+             => GenericDropdownField(rect, currentValue, list, label);
+        public static string ListDropdownField(Rect rect, string currentValue, string[] array, GUIContent label = null)
+            => GenericDropdownField(rect, currentValue, array, label);
+        private static T GenericDropdownField<T>(Rect rect, T currentValue, IList<T> list, GUIContent label = null)
+        {
+            if (list == null || list.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No list found.", MessageType.None);
+                return default;
+            }
+
+            if (label != null)
+            {
+                rect = EditorGUI.PrefixLabel(rect, label);
+            }
+
+            int index = list.IndexOf(currentValue);
+
+            List<string> stringArray = new List<string>();
+            foreach (var enumValue in list)
+            {
+                stringArray.Add(enumValue.ToString());
+            }
+
+            index = EditorGUI.Popup(rect, index, stringArray.ToArray());
+            if (index < 0) index = 0;
+            return list[index];
+        }
+
+        
     }
 }

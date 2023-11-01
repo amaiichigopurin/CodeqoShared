@@ -2,11 +2,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-
 namespace CodeqoEditor.Git
 {
-
-
     public abstract class GitWindow : PaddedEditorWindow
     {
         protected abstract string GIT_URL { get; }
@@ -64,6 +61,16 @@ namespace CodeqoEditor.Git
                 return;
             }
 
+
+            if (_git.PullAvailable)
+            {
+                EditorGUILayout.HelpBox("New version available. Please download the latest version.", MessageType.Warning);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("You are up to date with the latest version.", MessageType.Info);
+            }            
+
             DrawGitPanel();
             DrawButtons();
 
@@ -100,31 +107,33 @@ namespace CodeqoEditor.Git
                 if (_gitOutputs.Count > 0)
                 {
                     for (int i = 0; i < _gitOutputs.Count; i++)
-                    {
-                        bool colorChanged = false;
+                    {              
                         Color colorOrigin = Color.black;
                         
                         switch (_gitOutputs[i].status)
                         {
-                            case GitOutputStatus.Error:
-                                colorChanged = true;
+                            case GitOutputStatus.Error:                      
                                 colorOrigin = gitOutputStyle.normal.textColor;
                                 gitOutputStyle.normal.textColor = Color.red;
+                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
+                                gitOutputStyle.normal.textColor = colorOrigin;
                                 break;
-                            case GitOutputStatus.Success:
-                                colorChanged = true;
+                            case GitOutputStatus.Success:                       
                                 colorOrigin = gitOutputStyle.normal.textColor;
                                 gitOutputStyle.normal.textColor = Color.blue;
+                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
+                                gitOutputStyle.normal.textColor = colorOrigin;
                                 break;
-                            case GitOutputStatus.Warning:
-                                colorChanged = true;
+                            case GitOutputStatus.Warning:                     
                                 colorOrigin = gitOutputStyle.normal.textColor;
                                 gitOutputStyle.normal.textColor = Color.magenta;
+                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
+                                gitOutputStyle.normal.textColor = colorOrigin;
                                 break;
-                        }
-                        
-                        GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
-                        if (colorChanged) gitOutputStyle.normal.textColor = colorOrigin;
+                            default:
+                                GUILayout.Label(_gitOutputs[i].value, gitOutputStyle);
+                                break;
+                        }     
                     }                    
                 }
 
@@ -154,13 +163,11 @@ namespace CodeqoEditor.Git
         {
             if (_git.PullAvailable)
             {
-                EditorGUILayout.HelpBox("New version available. Please download the latest version.", MessageType.Warning);
-
                 if (GUILayout.Button("Download (Git Pull)"))
                 {
                     Pull();
                 }
-            }
+            }   
 
             if (GUILayout.Button("Upload (Git Push)"))
             {
