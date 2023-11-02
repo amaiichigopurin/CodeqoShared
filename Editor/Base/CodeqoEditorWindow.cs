@@ -1,193 +1,226 @@
-using CodeqoEditor;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public abstract class CodeqoEditorWindow<WindowClass> : EditorWindow
-    where WindowClass : EditorWindow
+namespace CodeqoEditor
 {
-    protected string WindowName 
-    { 
-        get => EditorPrefs.GetString(typeof(WindowClass).Name + "_name"); 
-        set => EditorPrefs.SetString(typeof(WindowClass).Name + "_name", value); 
-    }
-    protected float ImageHeight 
-    { 
-        get => EditorPrefs.GetFloat(typeof(WindowClass).Name + "_imageHeight", 74f); 
-        set => EditorPrefs.SetFloat(typeof(WindowClass).Name + "_imageHeight", value); 
-    }
-    protected float ImageWidth 
-    { 
-        get => EditorPrefs.GetFloat(typeof(WindowClass).Name + "_imageWidth", 74f); 
-        set => EditorPrefs.SetFloat(typeof(WindowClass).Name + "_imageWidth", value); 
-    }
-    protected float SmallImageHeight 
-    { 
-        get => EditorPrefs.GetFloat(typeof(WindowClass).Name + "_smallImageHeight", 32f); 
-        set => EditorPrefs.SetFloat(typeof(WindowClass).Name + "_smallImageHeight", value); 
-    }
-    protected float SmallImageWidth 
-    { 
-        get => EditorPrefs.GetFloat(typeof(WindowClass).Name + "_smallImageWidth", 32f); 
-        set => EditorPrefs.SetFloat(typeof(WindowClass).Name + "_smallImageWidth", value); 
-    }    
-    protected bool DebugMode
+    public abstract class CodeqoEditorWindow<WindowClass> : EditorWindow
+        where WindowClass : EditorWindow
     {
-        get => EditorPrefs.GetBool(typeof(WindowClass).Name + "_debugMode", false);
-        set => EditorPrefs.SetBool(typeof(WindowClass).Name + "_debugMode", value);
-    }
+        const float DEFAULT_IMAGE_HEIGHT = 74f;
+        const float DEFAULT_IMAGE_WIDTH = 74f;
+        const float DEFAULT_ICON_HEIGHT = 32f;
+        const float DEFAULT_ICON_WIDTH = 32f;
+        const float DEFAULT_MIN_WINDOW_HEIGHT = 400f;
+        const float DEFAULT_MIN_WINDOW_WIDTH = 720f;
+        const float DEFAULT_MAX_WINDOW_HEIGHT = 1200f;
+        const float DEFAULT_MAX_WINDOW_WIDTH = 1800f;
+        const float DEFAULT_BUTTON_HEIGHT = 30f;
+        const float DEFAULT_BUTTON_WIDTH = 120f;
+        const float DEFAULT_MINI_BUTTON_HEIGHT = 20f;
+        const float DEFAULT_MINI_BUTTON_WIDTH = 80f;
 
-    protected static Vector2 GetWindowMinSize()
-    {
-        int width = EditorPrefs.GetInt($"{typeof(WindowClass).Name}WindowWidth", 720);
-        int height = EditorPrefs.GetInt($"{typeof(WindowClass).Name}WindowHeight", 400);
-        return new Vector2(width, height);
-    }
-
-    protected static void SetWindowMinSize(Vector2 minSize)
-    {
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}WindowWidth", (int)minSize.x);
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}WindowHeight", (int)minSize.y);
-    }
-
-    protected static Vector2 GetWindowMaxSize()
-    {
-        int width = EditorPrefs.GetInt($"{typeof(WindowClass).Name}WindowMaxWidth", 1200);
-        int height = EditorPrefs.GetInt($"{typeof(WindowClass).Name}WindowMaxHeight", 1200);
-        return new Vector2(width, height);
-    }
-
-    protected static void SetWindowMaxSize(Vector2 maxSize)
-    {
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}WindowMaxWidth", (int)maxSize.x);
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}WindowMaxHeight", (int)maxSize.y);
-    }
-
-    protected static void SetButtonSize(Vector2 buttonSize)
-    {
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}ButtonSizeWidth", (int)buttonSize.x);
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}ButtonSizeHeight", (int)buttonSize.y);
-    }
-
-    protected static Vector2 GetButtonSize()
-    {
-        int width = EditorPrefs.GetInt($"{typeof(WindowClass).Name}ButtonSizeWidth", 120);
-        int height = EditorPrefs.GetInt($"{typeof(WindowClass).Name}ButtonSizeHeight", 30);
-        return new Vector2(width, height);
-    }
-
-    protected static void SetInnerButtonSize(Vector2 buttonSize)
-    {
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}InnerButtonSizeWidth", (int)buttonSize.x);
-        EditorPrefs.SetInt($"{typeof(WindowClass).Name}InnerButtonSizeHeight", (int)buttonSize.y);
-    }
-
-    protected static Vector2 GetInnerButtonSize()
-    {
-        int width = EditorPrefs.GetInt($"{typeof(WindowClass).Name}InnerButtonSizeWidth", 80);
-        int height = EditorPrefs.GetInt($"{typeof(WindowClass).Name}InnerButtonSizeHeight", 20);
-        return new Vector2(width, height);
-    }
-
-    protected Vector2 windowMinSize;
-    protected Vector2 windowMaxSize;
-    protected Vector2 buttonSize;
-    protected Vector2 innerButtonSize;
-    protected float imageHeight, imageWidth;
-    protected float smallImageHeight, smallImageWidth;
-    protected string windowName;
-    protected GUILayoutOption[] buttonOptions;
-    protected GUILayoutOption[] innerButtonOptions;
-    protected bool _isShowingSettings;
-    
-    protected static void Initialize()
-    {
-        Debug.Log("Opening " + typeof(WindowClass).Name);
-        WindowClass window = (WindowClass)GetWindow(typeof(WindowClass), false, typeof(WindowClass).Name);
-        window.Show();
-        window.minSize = GetWindowMinSize();
-        window.maxSize = GetWindowMaxSize();
-        window.autoRepaintOnSceneChange = true;
-    }
-
-    protected virtual void OnEnable()
-    {
-        windowMinSize = GetWindowMinSize();
-        windowMaxSize = GetWindowMaxSize();
-        buttonSize = GetButtonSize();
-        innerButtonSize = GetInnerButtonSize();
-        imageHeight = ImageHeight;
-        imageWidth = ImageWidth;
-        smallImageHeight = SmallImageHeight;
-        smallImageWidth = SmallImageWidth;
-        windowName = WindowName;
-        buttonOptions = new GUILayoutOption[] { GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y), GUILayout.ExpandWidth(true) };
-        innerButtonOptions = new GUILayoutOption[] { GUILayout.Width(innerButtonSize.x), GUILayout.Height(innerButtonSize.y), GUILayout.ExpandWidth(true) };
-    }
-    
-    protected void InternalMenuHeader(string title)
-    {
-        /* centered button with width 100 */
-        CUILayout.HorizontalLayout(() => {
-            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Close"))
-            {
-                _isShowingSettings = false;
-            }
-        });
-        GUILayout.Space(5);
-    }
-
-    protected void OpenSettings()
-    {
-        CUILayout.VerticalLayout(CUI.Box(10, 10, 10, 10, CUIColor.None), (System.Action)(() =>
+        protected string WindowName
         {
-            float currentWindowSizeX = position.width;
-            float currentWindowSizeY = position.height;
-            InternalMenuHeader("Window Settings");
+            get => EditorPrefs.GetString(typeof(WindowClass).Name + "_windowName");
+            set => EditorPrefs.SetString(typeof(WindowClass).Name + "_windowName", value);
+        }
+        protected bool DebugMode
+        {
+            get => EditorPrefs.GetBool(typeof(WindowClass).Name + "_debugMode", false);
+            set => EditorPrefs.SetBool(typeof(WindowClass).Name + "_debugMode", value);
+        }
 
-            CUILayout.VerticalLayout(CUI.box, () => {
-                EditorGUILayout.LabelField("Current Window Size : " + currentWindowSizeX + " x " + currentWindowSizeY);
-            });
+        protected static List<string> _debugInfo = new List<string>();
+        protected Vector2 ImageSize
+        {
+            get
+            {
+                float x = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_imageWidth", DEFAULT_IMAGE_WIDTH);
+                float y = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_imageHeight", DEFAULT_IMAGE_HEIGHT);
+                return new Vector2(x, y);
+            }
+            set
+            {
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_imageWidth", value.x);
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_imageHeight", value.y);
+            }            
+        }
+        protected Vector2 IconSize
+        {
+            get
+            {
+                float x = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_iconWidth", DEFAULT_ICON_WIDTH);
+                float y = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_iconHeight", DEFAULT_ICON_HEIGHT);
+                return new Vector2(x, y);
+            }
+            set
+            {
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_iconWidth", value.x);
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_iconHeight", value.y);
+            }
+        }
+        public static Vector2 MinWindowSize
+        {
+            get
+            {
+                float x = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_minWindowWidth", DEFAULT_MIN_WINDOW_WIDTH);
+                float y = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_minWindowHeight", DEFAULT_MIN_WINDOW_HEIGHT);
+                return new Vector2(x, y);
+            }
+            set
+            {
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_minWindowWidth", value.x);
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_minWindowHeight", value.y);
+            }
+        }
+        public static Vector2 MaxWindowSize
+        {
+            get
+            {
+                float x = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_maxWindowWidth", DEFAULT_MAX_WINDOW_WIDTH);
+                float y = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_maxWindowHeight", DEFAULT_MAX_WINDOW_HEIGHT);
+                return new Vector2(x, y);
+            }
+            set
+            {
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_maxWindowWidth", value.x);
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_maxWindowHeight", value.y);
+            }
+        }
 
-            GUILayout.Space(5);
+        protected Vector2 ButtonSize
+        {
+            get
+            {
+                float x = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_buttonWidth", DEFAULT_BUTTON_WIDTH);
+                float y = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_buttonHeight", DEFAULT_BUTTON_HEIGHT);
+                return new Vector2(x, y);
+            }
+            set
+            {
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_buttonWidth", value.x);
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_buttonHeight", value.y);
+            }
+        }
 
-            EditorGUILayout.LabelField("UI Window", EditorStyles.boldLabel);
-            windowName = EditorGUILayout.TextField("Window Name", windowName);
-            windowMinSize = EditorGUILayout.Vector2Field("Minimum Window Size", windowMinSize);
-            windowMaxSize = EditorGUILayout.Vector2Field("Maximum Window Size", windowMaxSize);
-            GUILayout.Space(5);
+        protected Vector2 MiniButtonSize
+        {
+            get
+            {
+                float x = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_miniButtonWidth", DEFAULT_MINI_BUTTON_WIDTH);
+                float y = EditorPrefs.GetFloat(typeof(WindowClass).Name + "_miniButtonHeight", DEFAULT_MINI_BUTTON_HEIGHT);
+                return new Vector2(x, y);
+            }
+            set
+            {
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_miniButtonWidth", value.x);
+                EditorPrefs.SetFloat(typeof(WindowClass).Name + "_miniButtonHeight", value.y);
+            }
+        }
 
-            EditorGUILayout.LabelField("UI Buttons", EditorStyles.boldLabel);
-            buttonSize = EditorGUILayout.Vector2Field("Button Size", buttonSize);
-            innerButtonSize = EditorGUILayout.Vector2Field("Inner Button Size", innerButtonSize);
-            GUILayout.Space(5);
+        protected Vector2 minWindowSize;
+        protected Vector2 maxWindowSize;
+        
+        protected Vector2 imageSize;
+        protected Vector2 iconSize;
+        
+        protected Vector2 buttonSize;
+        protected Vector2 miniButtonSize;
 
-            EditorGUILayout.LabelField("Big UI Images (Icons / etc)", EditorStyles.boldLabel);
-            imageHeight = EditorGUILayout.FloatField("Image Height", imageHeight);
-            imageWidth = EditorGUILayout.FloatField("Image Width", imageWidth);
-            GUILayout.Space(5);
+        protected string windowName;
+        protected GUILayoutOption[] buttonOptions;
+        protected GUILayoutOption[] innerButtonOptions;
+        protected bool _isShowingSettings;
 
-            EditorGUILayout.LabelField("Small UI Images (Icons / etc)", EditorStyles.boldLabel);
-            smallImageHeight = EditorGUILayout.FloatField("Image Height", smallImageHeight);
-            smallImageWidth = EditorGUILayout.FloatField("Image Width", smallImageWidth);
-            GUILayout.Space(5);
+        protected static void Initialize()
+        {
+            Debug.Log("Opening " + typeof(WindowClass).Name);
+            WindowClass window = (WindowClass)GetWindow(typeof(WindowClass), false, typeof(WindowClass).Name);
+            window.Show();
+            window.minSize = MinWindowSize;
+            window.maxSize = MaxWindowSize;
+            window.autoRepaintOnSceneChange = true;
+        }
 
-            CUILayout.HorizontalLayout((System.Action)(() => {
-                if (GUILayout.Button("Save Settings", innerButtonOptions))
+ 
+
+        protected virtual void OnEnable()
+        {
+            windowName = WindowName;
+            minWindowSize = MinWindowSize;
+            maxWindowSize = MaxWindowSize;
+
+            imageSize = ImageSize;
+            iconSize = IconSize;
+            buttonSize = ButtonSize;
+            miniButtonSize = MiniButtonSize;     
+       
+            buttonOptions = new GUILayoutOption[] { GUILayout.Width(buttonSize.x), GUILayout.Height(buttonSize.y), GUILayout.ExpandWidth(true) };
+            innerButtonOptions = new GUILayoutOption[] { GUILayout.Width(miniButtonSize.x), GUILayout.Height(miniButtonSize.y), GUILayout.ExpandWidth(true) };
+        }
+
+        protected void InternalMenuHeader(string title)
+        {
+            /* centered button with width 100 */
+            CUILayout.HorizontalLayout(() =>
+            {
+                EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Close"))
                 {
-                    SetWindowMinSize(windowMinSize);
-                    SetWindowMaxSize(windowMaxSize);
-                    SetButtonSize(buttonSize);
-                    SetInnerButtonSize(innerButtonSize);
-                    ImageHeight = imageHeight;
-                    ImageWidth = imageWidth;
-                    SmallImageHeight = smallImageHeight;
-                    SmallImageWidth = smallImageWidth;
-                    WindowName = windowName;
-                    Initialize();
+                    _isShowingSettings = false;
                 }
+            });
+            GUILayout.Space(5);
+        }
+
+        protected void OpenSettings()
+        {
+            CUILayout.VerticalLayout(CUI.Box(10, 10, 10, 10, CUIColor.None), (System.Action)(() =>
+            {
+                float currentWindowSizeX = position.width;
+                float currentWindowSizeY = position.height;
+                InternalMenuHeader("Window Settings");
+
+                CUILayout.VerticalLayout(CUI.box, () =>
+                {
+                    EditorGUILayout.LabelField("Current Window Size : " + currentWindowSizeX + " x " + currentWindowSizeY);
+                });
+
+                GUILayout.Space(5);
+
+                EditorGUILayout.LabelField("UI Window", EditorStyles.boldLabel);
+                windowName = EditorGUILayout.TextField("Window Name", windowName);
+                minWindowSize = EditorGUILayout.Vector2Field("Minimum Window Size", minWindowSize);
+                maxWindowSize = EditorGUILayout.Vector2Field("Maximum Window Size", maxWindowSize);
+                GUILayout.Space(5);
+
+                EditorGUILayout.LabelField("UI Buttons", EditorStyles.boldLabel);
+                buttonSize = EditorGUILayout.Vector2Field("Button Size", buttonSize);
+                miniButtonSize = EditorGUILayout.Vector2Field("Inner Button Size", miniButtonSize);
+                GUILayout.Space(5);
+
+                EditorGUILayout.LabelField("UI Images (Textures/Icons)", EditorStyles.boldLabel);
+                imageSize = EditorGUILayout.Vector2Field("Image Size", imageSize);
+                iconSize = EditorGUILayout.Vector2Field("Icon Size", iconSize);
+                GUILayout.Space(5);
+
+                CUILayout.HorizontalLayout(() =>
+                {
+                    if (GUILayout.Button("Save Settings", innerButtonOptions))
+                    {                        
+                        WindowName = windowName;
+                        MinWindowSize = minWindowSize;
+                        MaxWindowSize = maxWindowSize;
+                        ButtonSize = buttonSize;
+                        MiniButtonSize = miniButtonSize;
+                        ImageSize = imageSize;
+                        IconSize = iconSize;
+                        Initialize();
+                    }
+                });
             }));
-        }));
+        }
     }
 }

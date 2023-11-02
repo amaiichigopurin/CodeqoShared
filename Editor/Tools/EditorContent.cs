@@ -42,6 +42,8 @@ namespace CodeqoEditor
         public static GUIContent Confirmed => EditorGUIUtility.IconContent("Collab");
         public static GUIContent Tag => EditorGUIUtility.IconContent("d_FilterByLabel");
         public static GUIContent Status => EditorGUIUtility.IconContent("d_console.infoicon");
+        public static GUIContent Generate => EditorGUIUtility.IconContent("d_PlayButton");
+        public static GUIContent Clipboard => EditorGUIUtility.IconContent("Clipboard");
 
     }
 }
