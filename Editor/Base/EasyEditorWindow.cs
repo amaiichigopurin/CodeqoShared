@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CodeqoEditor
 {
-    public abstract class CodeqoEditorWindow<WindowClass> : EditorWindow
+    public abstract class EasyEditorWindow<WindowClass> : EditorWindow
         where WindowClass : EditorWindow
     {
         const float DEFAULT_IMAGE_HEIGHT = 74f;
@@ -142,8 +142,6 @@ namespace CodeqoEditor
             window.maxSize = MaxWindowSize;
             window.autoRepaintOnSceneChange = true;
         }
-
- 
 
         protected virtual void OnEnable()
         {

@@ -36,9 +36,12 @@ namespace CodeqoEditor.Git
         public bool PushAvailable => _remoteVersion < _localVersion && _remoteVersion.Build != 0 && _localVersion.Build != 0;
         #endregion
 
+        public const string VERSION_FILENAME = "Version.txt";
+        
         private const string RAW_GIT_URL = "https://raw.githubusercontent.com";
         private const string GIT_BRANCH = "master";
-        public const string VERSION_FILENAME = "Version.txt";
+        private const string GIT_WARNING = "warning: ";
+
         string LOCAL_VERSION_FILEPATH => Path.Combine(_workingDirectory, VERSION_FILENAME);
         string REMOTE_VERSION_FILEPATH
         {
@@ -192,10 +195,20 @@ namespace CodeqoEditor.Git
                 process.ErrorDataReceived += (sender, args) =>
                 {
                     if (args.Data != null)
-                    {
+                    {                        
                         Debug.LogError(args.Data);
                         errorBuilder.AppendLine(args.Data);
-                        OnGitOutput?.Invoke(new GitOutput(args.Data, GitOutputStatus.Error));
+                        string result = args.Data;
+                        
+                        GitOutputStatus status = GitOutputStatus.Error;
+                        
+                        if (result.StartsWith(GIT_WARNING))
+                        {
+                            result = result.Replace(GIT_WARNING, "");
+                            status = GitOutputStatus.Warning;
+                        }
+                        
+                        OnGitOutput?.Invoke(new GitOutput(result, status));
                     }
                 };
 
