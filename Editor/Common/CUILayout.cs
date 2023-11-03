@@ -9,7 +9,6 @@ namespace CodeqoEditor
     public partial class CUILayout
     {
         private static Dictionary<string, GUIStyle> cachedStyles = new Dictionary<string, GUIStyle>();
-
         
         public static void InfoVisitButton(string label, string url)
         {
@@ -197,6 +196,27 @@ namespace CodeqoEditor
             colorStyle.alignment = TextAnchor.MiddleLeft;
             EditorGUILayout.LabelField(label, colorStyle);
             colorStyle.normal.textColor = saveColor;
+        }
+        #endregion
+
+        #region DescriptionField
+        public static string DescriptionField(string text, params GUILayoutOption[] options)
+        {
+            GUIStyle style = CUI.skin.textArea;
+            return EditorGUILayout.TextArea(text, style, options);
+        }
+
+        public static string DescriptionField(SerializedProperty property, params GUILayoutOption[] options)
+        {
+            GUIStyle style = CUI.skin.textArea;
+            return EditorGUILayout.TextArea(property.stringValue, style, options);
+        }
+
+        public static string DescriptionField(string label, SerializedProperty property, params GUILayoutOption[] options)
+        {
+            GUIStyle style = CUI.skin.textArea; ;
+            EditorGUILayout.PrefixLabel(label);
+            return EditorGUILayout.TextArea(property.stringValue, style, options);
         }
         #endregion
 
@@ -670,18 +690,10 @@ namespace CodeqoEditor
 
         public static string TextArea(string text, Object assetToSave, GUIStyle style, params GUILayoutOption[] options)
         {
-            if (assetToSave == null)
-            {
-                throw new ArgumentNullException(nameof(assetToSave));
-            }
-
-            if (style == null)
-            {
-                style = EditorStyles.textArea;
-            }
+            if (assetToSave == null) throw new ArgumentNullException(nameof(assetToSave));  
+            if (style == null) style = EditorStyles.textArea;
 
             CUI.CurrentField = assetToSave.GetHashCode().ToString();
-
             string newText = EditorGUILayout.TextArea(text, style, options);
 
             if (CUI.CurrentField != CUI.CurrentField && newText != text)

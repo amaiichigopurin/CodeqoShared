@@ -4,9 +4,9 @@ using CodeqoEditor.Git;
 
 namespace CodeqoEditor
 {
-    public class VersionTypePopup : EditorPopupBase<VersionTypePopup, GitVersion>
+    public class VersionTypePopup : EditorPopupBase<VersionTypePopup, VersionIncrement>
     {
-        protected override GitVersion DrawContent(GitVersion value)
+        protected override VersionIncrement DrawContent(VersionIncrement value)
         {
             CUILayout.EnumToolBar(ref value);
             return value;

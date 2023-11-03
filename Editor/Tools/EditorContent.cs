@@ -35,13 +35,15 @@ namespace CodeqoEditor
         public static GUIContent Sphere => EditorGUIUtility.IconContent("Sphere");
         public static GUIContent Capsule => EditorGUIUtility.IconContent("Capsule");
         public static GUIContent Cylinder => EditorGUIUtility.IconContent("Cylinder");
-        public static GUIContent Plane => EditorGUIUtility.IconContent("Plane");
         public static GUIContent Quad => EditorGUIUtility.IconContent("Quad");
         public static GUIContent Edit => EditorGUIUtility.IconContent("d_editicon.sml");
         public static GUIContent Loading => EditorGUIUtility.IconContent("WaitSpin00");
         public static GUIContent Confirmed => EditorGUIUtility.IconContent("Collab");
         public static GUIContent Tag => EditorGUIUtility.IconContent("d_FilterByLabel");
         public static GUIContent Status => EditorGUIUtility.IconContent("d_console.infoicon");
+        public static GUIContent Generate => EditorGUIUtility.IconContent("d_PlayButton");
+        public static GUIContent Clipboard => EditorGUIUtility.IconContent("Clipboard");
+        public static GUIContent Layout => EditorGUIUtility.IconContent("d_layout");
 
     }
 }

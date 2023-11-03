@@ -9,6 +9,8 @@ namespace CodeqoEditor
 {
     public static class CUI
     {
+        private static Dictionary<string, GUIStyle> cachedStyles = new Dictionary<string, GUIStyle>();
+
         private static GUISkin _skin;
         public static GUISkin skin => _skin ?? (_skin = EditorSkin.skin);
 
@@ -45,38 +47,67 @@ namespace CodeqoEditor
         public static Rect GetHeaderRect(Rect r, float indent = 10, float margin = 6, float width = 22, float height = 22)
             => new Rect(r.x + indent, r.y + margin, width, height);
 
-        public static GUIStyle BG()
-            => new GUIStyle { normal = { background = EditorTexture.Background } };
+        public static GUIStyle Background()
+        {
+            string key = "background";
+            if (!cachedStyles.ContainsKey(key))
+            {
+                cachedStyles.Add(key, new GUIStyle 
+                { 
+                    normal = { background = EditorTexture.Background } 
+                });
+            }
+            return cachedStyles[key];
+        }
 
-        public static GUIStyle Box(CUIColor color = CUIColor.None, int margin = 0)
+        private static GUIStyle BoxInternal(CUIColor color, RectOffset margin)
+        {
+            string key = $"{color}_{margin.left},{margin.right},{margin.top},{margin.bottom}";
+            if (!cachedStyles.ContainsKey(key))
+            {
+                cachedStyles.Add(key, new GUIStyle
+                {
+                    border = new RectOffset(10, 10, 10, 10),
+                    margin = margin,
+                    padding = new RectOffset(6, 6, 6, 6),
+                    normal = { background = EditorTexture.Box(color) }
+                });
+            }
+            return cachedStyles[key];
+        }
+        public static GUIStyle Box(CUIColor color)
+            => BoxInternal(color, new RectOffset(0, 0, 0, 0));
+        public static GUIStyle Box(int margin = 0, CUIColor color = CUIColor.None)
             => BoxInternal(color, new RectOffset(margin, margin, margin, margin));
         public static GUIStyle Box(int margin)
             => BoxInternal(0, new RectOffset(margin, margin, margin, margin));
         public static GUIStyle Box(int left, int right, int top, int bottom, CUIColor color = CUIColor.None)
             => BoxInternal(color, new RectOffset(left, right, top, bottom));
+        
 
-        private static GUIStyle BoxInternal(CUIColor color, RectOffset margin)
+        private static GUIStyle BorderInternal(BorderDirection direction, RectOffset padding)
         {
-            return new GUIStyle
+            string key = $"{direction}_{padding.left},{padding.right},{padding.top},{padding.bottom}";
+            if (!cachedStyles.ContainsKey(key))
             {
-                border = new RectOffset(10, 10, 10, 10),
-                margin = margin,
-                padding = new RectOffset(6, 6, 6, 6),
-                normal = { background = EditorTexture.Box(color) }
-            };
+                Texture2D boxTex = direction == BorderDirection.Top ? EditorTexture.BorderTop : EditorTexture.BorderBottom;
+                cachedStyles.Add(key, new GUIStyle
+                {
+                    border = new RectOffset(10, 10, 10, 10),
+                    margin = new RectOffset(0, 0, 0, 0),
+                    padding = padding,
+                    normal = { background = boxTex }
+                });
+            }
+            return cachedStyles[key];
         }
 
         public static GUIStyle Border(BorderDirection direction)
-        {
-            Texture2D boxTex = direction == BorderDirection.Top ? EditorTexture.BorderTop : EditorTexture.BorderBottom;
-            return new GUIStyle
-            {
-                border = new RectOffset(10, 10, 10, 10),
-                margin = new RectOffset(0, 0, 0, 0),
-                padding = new RectOffset(6, 6, 6, 6),
-                normal = { background = boxTex }
-            };
-        }
+            => BorderInternal(direction, new RectOffset(0, 0, 0, 0));
+        public static GUIStyle Border(int margin, BorderDirection direction)
+            => BorderInternal(direction, new RectOffset(margin, margin, margin, margin));
+        public static GUIStyle Border(int left, int right, int top, int bottom, BorderDirection direction)
+            => BorderInternal(direction, new RectOffset(left, right, top, bottom));
 
         public static bool Foldout(Rect position, string label, Action callback)
         {

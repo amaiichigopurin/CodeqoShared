@@ -19,14 +19,18 @@ namespace CodeqoEditor.Git
 
         int _gitOutputUpdated = 0;
         bool _initialized = false;
+        bool _debugMode = false;
 
         private Dictionary<GitOutputStatus, Color> gitOutputColors = new Dictionary<GitOutputStatus, Color>
         {
-            { GitOutputStatus.Error, Color.red },
             { GitOutputStatus.Success, Color.blue },
-            { GitOutputStatus.Warning, Color.magenta }
+            { GitOutputStatus.Warning, ExColor.firebrick },
+            { GitOutputStatus.Hint, Color.magenta },
+            { GitOutputStatus.Error, ExColor.charcoal },
+            { GitOutputStatus.RealError, ExColor.orange },
+            { GitOutputStatus.Fatal, Color.red },
         };
-        
+
         async void OnEnable()
         {
             if (string.IsNullOrEmpty(GIT_URL))
@@ -45,7 +49,7 @@ namespace CodeqoEditor.Git
             _repoName = GIT_URL.Substring(GIT_URL.LastIndexOf('/') + 1);
             _windowName = _repoName;
 
-            _git = new CodeqoGit(WORKING_DIR, GIT_URL);
+            _git = new CodeqoGit(WORKING_DIR, GIT_URL, _repoName);
 
             _git.OnGitOutput += (output) =>
             {
@@ -67,28 +71,30 @@ namespace CodeqoEditor.Git
                 return;
             }
 
+            DrawVersionInfo();
 
-            if (_git.PullAvailable)
-            {
-                EditorGUILayout.HelpBox("New version available. Please download the latest version.", MessageType.Warning);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox("You are up to date with the latest version.", MessageType.Info);
-            }            
+            //if (_git.PullAvailable)
+            //{
+            //    EditorGUILayout.HelpBox("New version available. Please download the latest version.", MessageType.Warning);
+            //}
+            //else
+            //{
+            //    EditorGUILayout.HelpBox("You are up to date with the latest version.", MessageType.Info);
+            //}            
 
             DrawGitPanel();
             DrawButtons();
 
             GUILayout.Space(10);
 
+            if (_debugMode) DrawDebugMenu();
+
             CUILayout.VerticalLayout(CUI.box, () =>
             {
-                GUILayout.Label("Version Info", EditorStyles.boldLabel);
-                GUILayout.Label($"Local Version: {_git.LocalVersion}");
-                GUILayout.Label($"Remote Version: {_git.RemoteVersion}");
+                _debugMode = GUILayout.Toggle(_debugMode, "Debug Mode");
             });
         }
+
 
         void DrawLabel()
         {
@@ -99,6 +105,53 @@ namespace CodeqoEditor.Git
                 GUILayout.Label($"Output {(_gitOutputUpdated)}");
             }
             GUILayout.EndHorizontal();
+        }
+
+        void DrawVersionInfo()
+        {
+            CUILayout.VerticalLayout(CUI.box, () =>
+            {
+                GUILayout.Label($"Local: {_git.LocalVersion.CreateTagInfo()}");
+                GUILayout.Label($"Remote: {_git.RemoteVersion.CreateTagInfo()}");
+            });
+        }
+
+        void DrawDebugMenu()
+        {
+            CUILayout.VerticalLayout(CUI.box, () =>
+            {
+                GUILayout.Label("Debug Menu", EditorStyles.boldLabel);
+
+                if (GUILayout.Button("Commit"))
+                {
+                    Commit();
+                }
+                
+                if (GUILayout.Button("Force Push"))
+                {
+                    if (CUIUtility.Warning("Are you sure you want to upload to the git repository?"))
+                    {
+                        string popupMessage = "Are you sure you want to force push?";
+                        string popupDescription = "Version type is used to determine the version number. \n" +
+                                                  "Patch: 1.0.0 -> 1.0.1 \n" +
+                                                  "Minor: 1.0.0 -> 1.1.0 \n" +
+                                                  "Major: 1.0.0 -> 2.0.0 \n";
+
+                        VersionTypePopup.ShowWindow(popupMessage, popupDescription, VersionIncrement.Patch, ForcePush);
+                    }              
+                }
+                
+                if (GUILayout.Button("Push Version Tag"))
+                {
+                    PushVersionTag();
+                }
+
+                if (GUILayout.Button("Pull Version Tag"))
+                {
+                    PullVersionTag();
+                }
+            
+            });
         }
 
         void DrawGitPanel()
@@ -172,10 +225,7 @@ namespace CodeqoEditor.Git
                                               "Minor: 1.0.0 -> 1.1.0 \n" +
                                               "Major: 1.0.0 -> 2.0.0 \n";
 
-                    VersionTypePopup.ShowWindow(popupMessage, popupDescription, GitVersion.Patch, (versionType) =>
-                    {
-                        Push(versionType);
-                    });
+                    VersionTypePopup.ShowWindow(popupMessage, popupDescription, VersionIncrement.Patch, Push);
                 }
             }
 
@@ -202,14 +252,34 @@ namespace CodeqoEditor.Git
             await _git.PullAsync();
         }
 
-        async void Push(GitVersion versionType)
+        async void Push(VersionIncrement versionType)
         {
             await _git.PushAsync(versionType);
+        }
+        
+        async void ForcePush(VersionIncrement versionType)
+        {
+            await _git.PushAsync(versionType, true);
         }
 
         async void Status()
         {
             await _git.StatusAsync();
         }
+
+        async void PushVersionTag()
+        {
+            await _git.PushVersionTagAsync();
+        }
+
+        async void PullVersionTag()
+        {
+            await _git.PullVersionTagAsync();
+        }
+        async void Commit()
+        {
+            await _git.CommitAsync();
+        }
+     
     }
 }

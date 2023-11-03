@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine.Networking;
 using Debug = UnityEngine.Debug;
 
 namespace CodeqoEditor.Git
@@ -12,9 +11,12 @@ namespace CodeqoEditor.Git
     public enum GitOutputStatus
     {
         Info,
+        Hint,
         Success,
+        Warning,
         Error,
-        Warning
+        RealError,
+        Fatal,
     }
 
     public struct GitOutput
@@ -36,34 +38,31 @@ namespace CodeqoEditor.Git
         public bool PushAvailable => _remoteVersion < _localVersion && _remoteVersion.Build != 0 && _localVersion.Build != 0;
         #endregion
 
-        private const string RAW_GIT_URL = "https://raw.githubusercontent.com";
+        //private const string RAW_GIT_URL = "https://raw.githubusercontent.com";
         private const string GIT_BRANCH = "master";
-        public const string VERSION_FILENAME = "Version.txt";
-        string LOCAL_VERSION_FILEPATH => Path.Combine(_workingDirectory, VERSION_FILENAME);
-        string REMOTE_VERSION_FILEPATH
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_gitUrl)) return null;
-                string[] split = _gitUrl.Split('/');
-                string repoName = split[split.Length - 1].Replace(".git", "");
-                string repoOwner = split[split.Length - 2];
-                return $"{RAW_GIT_URL}/{repoOwner}/{repoName}/{GIT_BRANCH}/{VERSION_FILENAME}";
-            }
-        }
+        private const string GIT_HINT = "hint: ";
+        private const string GIT_WARNING = "warning: ";
+        private const string GIT_ERROR = "error: ";
+        private const string GIT_FATAL = "fatal: ";
 
         public event Action<GitOutput> OnGitOutput;
 
         private readonly string _workingDirectory;
         private readonly string _gitUrl; // should look like https://github.com/amaiichigopurin/CodeqoShared.git
+        private readonly string _projectName;
 
-        private VersionInfo _localVersion;
-        private VersionInfo _remoteVersion;
-        public VersionInfo LocalVersion => _localVersion;
-        public VersionInfo RemoteVersion => _remoteVersion;
+        private GitVersion _localVersion;
+        private GitVersion _remoteVersion;
+        public GitVersion LocalVersion => _localVersion;
+        public GitVersion RemoteVersion => _remoteVersion;
 
-        public CodeqoGit(string workingDirectory, string gitUrl)
+        public CodeqoGit(string workingDirectory, string gitUrl, string projectName)
         {
+            if (string.IsNullOrEmpty(projectName))
+            {
+                throw new ArgumentException("Project name cannot be null or empty.", nameof(projectName));
+            }
+
             if (string.IsNullOrEmpty(workingDirectory))
             {
                 throw new ArgumentException("Working directory cannot be null or empty.", nameof(workingDirectory));
@@ -76,16 +75,17 @@ namespace CodeqoEditor.Git
 
             _workingDirectory = workingDirectory;
             _gitUrl = gitUrl;
+            _projectName = projectName;
         }
 
         public async Task InitializeAsync()
         {
-            _localVersion = VersionInfo.CreateFromFilePath(LOCAL_VERSION_FILEPATH);
+            _localVersion = GitVersion.CreateCurrentVersion(_projectName);
 
             try
             {
                 await InitializeGitRepositoryAsync();
-                await GetVersionInfoAsync();
+                await PullVersionTagAsync();
                 await ValidateRemoteOrigin();
                 await ValidateBranch();
             }
@@ -125,22 +125,62 @@ namespace CodeqoEditor.Git
 
         public Task PullAsync() => RunGitCommandAsync("pull");
 
-        public async Task PushAsync(GitVersion versionType)
+        public async Task PushAsync(VersionIncrement versionInc, bool force = false)
+        {
+            string pushCommand = $"push origin {GIT_BRANCH}";
+            if (force) pushCommand += " --force";       
+            await RunGitCommandAsync("add .");
+            await RunGitCommandAsync(pushCommand);
+            await PushVersionTagAsync(versionInc);
+        }
+
+        /// <summary>
+        /// git tag -a "tag" -m "tagInfo"
+        /// git push origin--tags
+        /// </summary>
+        /// <returns></returns>
+        public async Task PushVersionTagAsync(VersionIncrement versionInc = VersionIncrement.Patch)
+        {
+            string tag = _remoteVersion.CreateUpdatedTag(versionInc);
+            string tagInfo = _remoteVersion.CreateTagInfo();
+            await RunGitCommandAsync($"tag -a {tag} -m \"{tagInfo}\"");
+            await RunGitCommandAsync("push origin --tags");
+        }
+
+        public async Task PullVersionTagAsync()
+        {
+            Debug.Log("Getting version info...");
+            // Fetch the tags from the remote repository
+            await RunGitCommandAsync("fetch --tags");
+
+            // Get the latest tag from the fetched tags
+            string latestTag = await RunGitCommandAsync("describe --tags --abbrev=0", true);
+
+            // Check if the latestTag is not null or empty after trimming
+            if (!string.IsNullOrEmpty(latestTag))
+            {
+                _remoteVersion = new GitVersion(_projectName, latestTag);
+                Debug.Log($"Latest version tag pulled: {_remoteVersion}");
+            }
+            else
+            {
+                Debug.LogError("No valid version tag found.");
+                _remoteVersion = new GitVersion();
+            }
+        }
+
+        public async Task CommitAsync()
         {
             await RunGitCommandAsync("add .");
-            await RunGitCommandAsync($"commit -m \"Version {_remoteVersion.Build}\"");
-            await RunGitCommandAsync("push");
-            _remoteVersion.IncrementBuild(LOCAL_VERSION_FILEPATH, versionType);
+            await RunGitCommandAsync("commit --no-edit");
         }
+    
 
         public Task StatusAsync() => RunGitCommandAsync("status");
 
-        public async Task GetVersionInfoAsync()
+        public async Task<string> PushVersionAsync()
         {
-            Debug.Log("Getting version info...");
-            string versionFile = await DownloadVersionFile();
-            Debug.Log($"Version file downloaded: {versionFile}");
-            _remoteVersion = new VersionInfo(versionFile);
+            return await RunGitCommandAsync("remote get-url origin", returnOutput: true);
         }
 
         public async Task<string> GetCurrentRemoteOrigin()
@@ -183,9 +223,8 @@ namespace CodeqoEditor.Git
                 {
                     if (args.Data != null)
                     {
-                        Debug.Log(args.Data);
                         outputBuilder.AppendLine(args.Data);
-                        OnGitOutput?.Invoke(new GitOutput(args.Data, GitOutputStatus.Success));
+                        HandleResult(args.Data, GitOutputStatus.Success);
                     }
                 };
 
@@ -193,9 +232,8 @@ namespace CodeqoEditor.Git
                 {
                     if (args.Data != null)
                     {
-                        Debug.LogError(args.Data);
                         errorBuilder.AppendLine(args.Data);
-                        OnGitOutput?.Invoke(new GitOutput(args.Data, GitOutputStatus.Error));
+                        HandleResult(args.Data, GitOutputStatus.Error);
                     }
                 };
 
@@ -213,7 +251,7 @@ namespace CodeqoEditor.Git
                     return null;
                 }
 
-                return returnOutput ? outputBuilder.ToString() : null;
+                return returnOutput ? outputBuilder.ToString().Trim() : null;
             }
             catch (Exception ex)
             {
@@ -222,6 +260,40 @@ namespace CodeqoEditor.Git
                 OnGitOutput?.Invoke(new GitOutput(error, GitOutputStatus.Error));
                 return null;
             }
+        }
+
+        void HandleResult(string output, GitOutputStatus status)
+        {
+            if (output.StartsWith(GIT_HINT))
+            {
+                output = output.Replace(GIT_HINT, "");
+                status = GitOutputStatus.Hint;
+                Debug.Log(output);
+            }
+            else if (output.StartsWith(GIT_WARNING))
+            {
+                output = output.Replace(GIT_WARNING, "");
+                status = GitOutputStatus.Warning;
+                Debug.LogWarning(output);
+            }
+            else if (output.StartsWith(GIT_ERROR))
+            {
+                output = output.Replace(GIT_ERROR, "");
+                status = GitOutputStatus.RealError;
+                Debug.LogError(output);
+            }
+            else if (output.StartsWith(GIT_FATAL))
+            {
+                output = output.Replace(GIT_FATAL, "");
+                status = GitOutputStatus.Fatal;
+                Debug.LogError(output);
+            }
+            else
+            {
+                Debug.Log(output);
+            }
+
+            OnGitOutput?.Invoke(new GitOutput(output, status));
         }
 
         private async Task InitializeGitRepositoryAsync()
@@ -243,33 +315,6 @@ namespace CodeqoEditor.Git
                 string error = $"Failed to initialize Git repository:  {ex.Message}";
                 Debug.LogError(error);
                 OnGitOutput?.Invoke(new GitOutput(error, GitOutputStatus.Error));
-            }
-        }
-
-        private async Task<string> DownloadVersionFile()
-        {
-            string path = REMOTE_VERSION_FILEPATH;
-            if (string.IsNullOrEmpty(path))
-            {
-                Debug.LogError("Git URL is not set.");
-                return null;
-            }
-
-            Debug.Log($"Downloading version file from: {path}");
-            using UnityWebRequest webRequest = UnityWebRequest.Get(path);
-            var operation = webRequest.SendWebRequest();
-
-            while (!operation.isDone)
-                await Task.Yield();
-
-            if (webRequest.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError($"Error: {webRequest.error}");
-                return null;
-            }
-            else
-            {
-                return webRequest.downloadHandler.text;
             }
         }
     }

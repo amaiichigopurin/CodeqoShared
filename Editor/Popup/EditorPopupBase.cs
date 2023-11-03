@@ -58,12 +58,10 @@ namespace CodeqoEditor
             EditorGUILayout.LabelField(_title, EditorStyles.boldLabel);
             EditorGUILayout.Space();
 
-            if (!string.IsNullOrEmpty(_description))
-            {
-                EditorGUILayout.LabelField(_description, EditorStyles.wordWrappedLabel);
-                EditorGUILayout.Space();
-            }
-
+            // Draw Description
+            DrawDescription();
+            EditorGUILayout.Space();
+            
             // Draw Content
             _value = DrawContent(_value);
             EditorGUILayout.Space();
@@ -72,6 +70,14 @@ namespace CodeqoEditor
             DrawButtons();
 
             EditorGUILayout.EndVertical();
+        }
+
+        protected virtual void DrawDescription()
+        {
+            if (!string.IsNullOrEmpty(_description))
+            {
+                EditorGUILayout.LabelField(_description, EditorStyles.wordWrappedLabel);
+            }
         }
 
         protected abstract Value DrawContent(Value value);

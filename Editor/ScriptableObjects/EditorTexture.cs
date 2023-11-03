@@ -58,6 +58,7 @@ namespace CodeqoEditor
 
         public static Texture2D Box(CUIColor color = 0)
         {
+            if (Instance == null) return CUI.box.normal.background;         
             return color switch
             {
                 CUIColor.Green => Instance.boxGreen,
@@ -71,6 +72,7 @@ namespace CodeqoEditor
 
         public static Texture2D TextField(CUIColor color = 0)
         {
+            if (Instance == null) return CUI.skin.textField.normal.background;
             return color switch
             {
                 CUIColor.Green => Instance.textFieldGreen,

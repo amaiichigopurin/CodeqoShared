@@ -2,75 +2,93 @@ using CodeqoEditor;
 using UnityEditor;
 using UnityEngine;
 
-public abstract class ExtendedEditorWindow<WindowClass> : CodeqoEditorWindow<WindowClass>
+namespace Glitch9
+{
+    public abstract class ExtendedEditorWindow<WindowClass> : EasyEditorWindow<WindowClass>
     where WindowClass : EditorWindow
-{  
-
-    protected Vector2 scrollPosition;   
-
-    protected abstract void OnGUIUpdate();
-    protected abstract void DrawWindowLabel();
-    protected abstract void DrawToolBar();
-    protected abstract void ResetWindow();
-    protected virtual void DrawExtraToolBarRow() { }
-    protected virtual void DrawExtraToolBarButtons() { }
-    protected virtual void DrawToolBarRow()
     {
-        CUILayout.HorizontalLayout(() =>
+        protected Vector2 scrollPosition;
+
+        #region Lazy Caching
+        GUIStyle _topBorderStyle;
+        GUIStyle TopBorderStyle
         {
-            DrawWindowLabel();
-            GUILayout.FlexibleSpace();
-            DrawExtraToolBarButtons();
-            if (GUILayout.Button("Settings"))
+            get
             {
-                _isShowingSettings = !_isShowingSettings;
-                return;
+                if (_topBorderStyle == null) _topBorderStyle = GetTopBorderStyle();
+                return _topBorderStyle;
             }
-            if (GUILayout.Button("Reset"))
-            {
-                Initialize();
-                ResetWindow();
-                AssetDatabase.Refresh();
-                return;
-            }
-        });
-        if (_isShowingSettings)
-        {
-            OpenSettings();
         }
-        else
+        protected virtual GUIStyle GetTopBorderStyle() => CUI.Border(BorderDirection.Top);
+
+        GUIStyle _bottomBorderStyle;
+        GUIStyle BottomBorderStyle
         {
-            DrawExtraToolBarRow();
-            DrawToolBar();
-        }  
-    }
-    
-    protected virtual void OnGUI()
-    {
-        DrawTop();
+            get
+            {
+                if (_bottomBorderStyle == null) _bottomBorderStyle = GetBottomBorderStyle();
+                return _bottomBorderStyle;
+            }
+        }
+        protected virtual GUIStyle GetBottomBorderStyle() => CUI.Border(BorderDirection.Bottom);
+        #endregion
 
-        CUILayout.VerticalLayout(CUI.Border(BorderDirection.Top), () => {
-            DrawToolBarRow();
-        });
+        void OnGUI()
+        {
+            GUILayout.BeginVertical(TopBorderStyle);
+            DrawTop();
+            GUILayout.EndVertical();
 
-        CUILayout.VerticalLayout(CUI.BG(), () => {
-            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-            GUILayout.Space(5);
-
-            CUILayout.HorizontalLayout(() => {
+            GUILayout.BeginVertical();
+            {
+                scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+                GUILayout.Space(5);
+                GUILayout.BeginVertical();
                 OnGUIUpdate();
                 GUILayout.FlexibleSpace();
-            });
 
-            GUILayout.Space(5);
-            EditorGUILayout.EndScrollView();
-        });
+                GUILayout.Space(5);
+                GUILayout.EndVertical();
+                EditorGUILayout.EndScrollView();
+            }
+            GUILayout.EndVertical();
 
-        CUILayout.VerticalLayout(CUI.Border(BorderDirection.Bottom), () => {
+            GUILayout.BeginVertical(BottomBorderStyle);
             DrawBottom();
-        });
+            GUILayout.EndVertical();
+        }
+
+        void DrawTop()
+        {
+            CUILayout.HorizontalLayout(() =>
+            {
+                DrawTopLabel();
+                GUILayout.FlexibleSpace();
+                DrawExtraToolBarButtons();
+                if (GUILayout.Button(EditorContent.Settings))
+                {
+                    _isShowingSettings = !_isShowingSettings;
+                    return;
+                }
+            });
+            if (_isShowingSettings)
+            {
+                OpenSettings();
+            }
+            else
+            {
+                DrawExtraToolBarRow();
+                DrawToolBar();
+            }
+        }
+
+        #region Override Methods
+        protected abstract void DrawTopLabel();
+        protected virtual void DrawToolBar() { }
+        protected virtual void DrawExtraToolBarRow() { }
+        protected virtual void DrawExtraToolBarButtons() { }
+        protected abstract void OnGUIUpdate();
+        protected abstract void DrawBottom();
+        #endregion
     }
-    
-    protected virtual void DrawTop() { }
-    protected abstract void DrawBottom();  
 }
