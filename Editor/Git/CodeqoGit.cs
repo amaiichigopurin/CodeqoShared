@@ -132,6 +132,7 @@ namespace CodeqoEditor.Git
             await RunGitCommandAsync("add .");
             await RunGitCommandAsync(pushCommand);
             await PushVersionTagAsync(versionInc);
+            _localVersion = _remoteVersion;
         }
 
         /// <summary>
@@ -145,6 +146,7 @@ namespace CodeqoEditor.Git
             string tagInfo = _remoteVersion.CreateTagInfo();
             await RunGitCommandAsync($"tag -a {tag} -m \"{tagInfo}\"");
             await RunGitCommandAsync("push origin --tags");
+            _localVersion = _remoteVersion;
         }
 
         public async Task PullVersionTagAsync()
@@ -172,12 +174,14 @@ namespace CodeqoEditor.Git
         public async Task CommitAsync()
         {
             await RunGitCommandAsync("add .");
-            await RunGitCommandAsync("commit --no-edit");
+            await RunGitCommandAsync("commit -m \"" + _remoteVersion.CreateTagInfo() + "\"");
         }
-    
-
+        
         public Task StatusAsync() => RunGitCommandAsync("status");
-
+        public Task ConfigureLocalCoreAutoCRLFAsync(bool value) => RunGitCommandAsync($"config core.autocrlf {(value ? "true" : "false")}");
+        public Task ConfigureGlobalCoreAutoCRLFAsync(bool value) => RunGitCommandAsync($"config --global core.autocrlf {(value ? "true" : "false")}");
+        public Task NormalizeLineEndingsAsync() => RunGitCommandAsync("add --renormalize .");
+        
         public async Task<string> PushVersionAsync()
         {
             return await RunGitCommandAsync("remote get-url origin", returnOutput: true);

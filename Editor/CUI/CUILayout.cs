@@ -31,16 +31,26 @@ namespace CodeqoEditor
 
         public static void Foldout(string label, Action callback)
         {
-            // draw lines on top and bottom of the foldout label
+            string styleKey = "CUI_Foldout";
+            if (!cachedStyles.ContainsKey(styleKey))
+            {
+                GUIStyle style = new GUIStyle(EditorStyles.foldout);
+                style.fontStyle = FontStyle.Bold;                
+                cachedStyles.Add(styleKey, style);
+            }
+
+            GUIStyle foldoutStyle = cachedStyles[styleKey];
+            int space = 3;
+
             CUIUtility.DrawHorizontalLine(1);
-            GUILayout.Space(5);
+            GUILayout.Space(space);
             bool b = EditorPrefs.GetBool(label, true);
-            b = EditorGUILayout.Foldout(b, label);
+            b = EditorGUILayout.Foldout(b, label, foldoutStyle);
             EditorPrefs.SetBool(label, b);
 
             if (b)
             {
-                GUILayout.Space(5);
+                GUILayout.Space(space);
                 CUIUtility.DrawHorizontalLine(1);
 
                 GUIStyle style = new GUIStyle();
@@ -52,17 +62,34 @@ namespace CodeqoEditor
             }
             else
             {
-                GUILayout.Space(5);
+                GUILayout.Space(space);
                 CUIUtility.DrawHorizontalLine(1);
             }
+
+            GUILayout.Space(-space);
         }
 
+        public static void Title(string label)
+        {
+            string styleKey = "CUI_Title";
+            if (!cachedStyles.ContainsKey(styleKey))
+            {
+                GUIStyle style = new GUIStyle();
+                style.fontSize = 14;
+                style.fontStyle = FontStyle.Bold;
+                style.margin = new RectOffset(0, 0, 10, 10);
+                cachedStyles.Add(styleKey, style);
+            }
+            EditorGUILayout.Space();
+            GUIStyle titleStyle = cachedStyles[styleKey];
+            EditorGUILayout.LabelField(label, titleStyle);
+            CUIUtility.DrawTitleLine();
+        }
+        
         public static void BoxedLayout(string label, Action callback, Texture2D texture = null)
         {
             Rect r = (Rect)EditorGUILayout.BeginVertical(CUI.skin.box);
-
-            if (texture == null) texture = EditorTexture.Config;
-
+            if (texture == null) texture = EditorTexture.NoImageHighRes;
             /* Header */
             GUI.DrawTexture(new Rect(r.position.x + 10, r.position.y + 5, 24, 24), texture);
             GUI.skin.label.fontSize = 14;

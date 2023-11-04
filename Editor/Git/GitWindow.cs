@@ -87,12 +87,7 @@ namespace CodeqoEditor.Git
 
             GUILayout.Space(10);
 
-            if (_debugMode) DrawDebugMenu();
-
-            CUILayout.VerticalLayout(CUI.box, () =>
-            {
-                _debugMode = GUILayout.Toggle(_debugMode, "Debug Mode");
-            });
+            DrawDebugMenu();
         }
 
 
@@ -120,37 +115,63 @@ namespace CodeqoEditor.Git
         {
             CUILayout.VerticalLayout(CUI.box, () =>
             {
-                GUILayout.Label("Debug Menu", EditorStyles.boldLabel);
+                _debugMode = GUILayout.Toggle(_debugMode, "Debug Menu");
 
-                if (GUILayout.Button("Commit"))
+                if (_debugMode)
                 {
-                    Commit();
-                }
-                
-                if (GUILayout.Button("Force Push"))
-                {
-                    if (CUIUtility.Warning("Are you sure you want to upload to the git repository?"))
+                    if (GUILayout.Button("Commit"))
                     {
-                        string popupMessage = "Are you sure you want to force push?";
-                        string popupDescription = "Version type is used to determine the version number. \n" +
-                                                  "Patch: 1.0.0 -> 1.0.1 \n" +
-                                                  "Minor: 1.0.0 -> 1.1.0 \n" +
-                                                  "Major: 1.0.0 -> 2.0.0 \n";
+                        Commit();
+                    }
 
-                        VersionTypePopup.ShowWindow(popupMessage, popupDescription, VersionIncrement.Patch, ForcePush);
-                    }              
-                }
-                
-                if (GUILayout.Button("Push Version Tag"))
-                {
-                    PushVersionTag();
-                }
+                    if (GUILayout.Button("Normalize Line Endings"))
+                    {
+                        if (CUIUtility.Warning("Are you sure you want to continue?"))
+                        {
+                            NomalizeLineEndings();
+                        }
+                    }
 
-                if (GUILayout.Button("Pull Version Tag"))
-                {
-                    PullVersionTag();
+                    if (GUILayout.Button("Configure core.autocrlf Globally [true]"))
+                    {
+                        if (CUIUtility.Warning("Are you sure you want to continue?"))
+                        {
+                            ConfigureAutoCRLF(true);
+                        }
+                    }
+
+                    if (GUILayout.Button("Configure core.autocrlf Globally [false]"))
+                    {
+                        if (CUIUtility.Warning("Are you sure you want to continue?"))
+                        {
+                            ConfigureAutoCRLF(false);
+                        }
+                    }
+
+                    if (GUILayout.Button("Force Push"))
+                    {
+                        if (CUIUtility.Warning("Are you sure you want to upload to the git repository?"))
+                        {
+                            string popupMessage = "Are you sure you want to force push?";
+                            string popupDescription = "Version type is used to determine the version number. \n" +
+                                                      "Patch: 1.0.0 -> 1.0.1 \n" +
+                                                      "Minor: 1.0.0 -> 1.1.0 \n" +
+                                                      "Major: 1.0.0 -> 2.0.0 \n";
+
+                            VersionTypePopup.ShowWindow(popupMessage, popupDescription, VersionIncrement.Patch, ForcePush);
+                        }
+                    }
+
+                    if (GUILayout.Button("Push Version Tag"))
+                    {
+                        PushVersionTag();
+                    }
+
+                    if (GUILayout.Button("Pull Version Tag"))
+                    {
+                        PullVersionTag();
+                    }
                 }
-            
             });
         }
 
@@ -256,7 +277,7 @@ namespace CodeqoEditor.Git
         {
             await _git.PushAsync(versionType);
         }
-        
+
         async void ForcePush(VersionIncrement versionType)
         {
             await _git.PushAsync(versionType, true);
@@ -280,6 +301,15 @@ namespace CodeqoEditor.Git
         {
             await _git.CommitAsync();
         }
-     
+
+        async void NomalizeLineEndings()
+        {
+            await _git.NormalizeLineEndingsAsync();
+        }
+
+        async void ConfigureAutoCRLF(bool value)
+        {
+            await _git.ConfigureGlobalCoreAutoCRLFAsync(value);
+        }
     }
 }

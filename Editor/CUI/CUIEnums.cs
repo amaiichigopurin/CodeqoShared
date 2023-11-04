@@ -15,14 +15,5 @@ namespace CodeqoEditor
         Top,
         Bottom
     }
-
-    public enum CUIIcon
-    {
-        Nextline,
-        Linebreak,
-        Icon,
-        Description,
-    }
-
 }
 

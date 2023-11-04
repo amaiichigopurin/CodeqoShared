@@ -1,0 +1,7 @@
+Native Media Player v.3.0.1 License Information
+
+[name of component]					| [name of license]         | [@name of creator]							| [url]
+Newtonsoft.Json.dll					| The MIT License (MIT)		|  James Newton-King							| https://www.newtonsoft.com/json
+
+
+The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.

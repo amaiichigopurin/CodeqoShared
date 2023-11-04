@@ -1,9 +1,9 @@
+using System;
+using System.Linq;
+using System.Xml.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEditor;
-using System.Xml.Linq;
-using System.Linq;
-using System;
 
 namespace CodeqoEditor
 {
@@ -15,7 +15,7 @@ namespace CodeqoEditor
             string path = AssetDatabase.GUIDToAssetPath(guids[0]);
             return path;
         }
-        
+
         public static void XmlValueChange(string _xmlPath, string _index, string _value)
         {
             var doc = XDocument.Load(_xmlPath);
@@ -41,21 +41,30 @@ namespace CodeqoEditor
                 Debug.LogWarning(e);
             }
         }
-        
+
         public static void DrawHorizontalLine(float thickness = 1f, int padding = 0)
         {
             Rect r = EditorGUILayout.GetControlRect(GUILayout.Height(padding + thickness));
             r.height = thickness;
-            //r.y += padding / 2;
             r.x -= 20;
             r.width += 40;
             EditorGUI.DrawRect(r, new Color(162f / 255f, 162f / 255f, 162f / 255f));
         }
 
+        public static void DrawTitleLine()
+        {
+            float thickness = 1.2f;
+            float height = 5f;
+            Rect r = EditorGUILayout.GetControlRect(GUILayout.Height(height));
+            r.height = thickness;
+            r.width -= 4;
+            EditorGUI.DrawRect(r, Color.gray);
+        }
+
         public static void DrawCircle(Rect r, Texture2D image = null, float margin = 6)
         {
             Texture2D tex = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/Codeqo/GUISkins/circle_android12.psd", typeof(Texture2D));
-            GUI.DrawTexture(r, tex);            
+            GUI.DrawTexture(r, tex);
             r.width -= margin;
             r.height -= margin;
             r.x += margin / 2;
@@ -74,7 +83,6 @@ namespace CodeqoEditor
             GUI.Box(r, "", CUI.skin.GetStyle("rounded_texture"));
             return r;
         }
-
 
         public static void OverrideSprite(SerializedProperty _obj, SerializedProperty _spr)
         {
