@@ -1,6 +1,5 @@
-using UnityEngine;
-using UnityEditor;
 using System;
+using UnityEngine;
 
 namespace CodeqoEditor
 {
@@ -14,7 +13,7 @@ namespace CodeqoEditor
             Content = new GUIContent(label);
             PanelContent = content;
         }
-        
+
         public TabbedPanelTab(Texture2D icon, Action content)
         {
             Content = new GUIContent(icon);
@@ -74,12 +73,12 @@ namespace CodeqoEditor
         {
             _isFixedHeight = true;
             _fixedHeight = height;
-        }    
+        }
 
         public void Draw()
         {
             GUILayout.BeginVertical();
-            { 
+            {
                 _selectedTabIndex = GUILayout.Toolbar(_selectedTabIndex, headers, tabStyle);
 
                 GUILayout.BeginVertical(panelStyle, _options);
@@ -95,7 +94,7 @@ namespace CodeqoEditor
                     if (_isFixedHeight)
                     {
                         GUILayout.EndVertical();
-                    }                           
+                    }
                 }
                 GUILayout.EndVertical();
             }

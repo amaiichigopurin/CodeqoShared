@@ -11,6 +11,7 @@ namespace CodeqoEditor
         private const string DIR_BACKGROUND = "Background/";
         private const string DIR_BORDER = "Border/";
         private const string DIR_BOX = "Box/";
+        private const string DIR_CONFIG = "Config/";
         private const string DIR_SLIDER = "Slider/";
         private const string DIR_MEDIA = "Media/";
         private const string DIR_TABBEDPANEL = "TabbedPanel/";
@@ -84,6 +85,18 @@ namespace CodeqoEditor
         private static Texture2D repeat => GetCachedTexture(DIR_MEDIA, "baseline_repeat_black_36.png");
         private static Texture2D repeatOne => GetCachedTexture(DIR_MEDIA, "baseline_repeat_one_black_36.png");
 
+        
+        private static Texture2D toggleDescriptionOn => GetCachedTexture(DIR_CONFIG, "toggle_description_on.psd");
+        private static Texture2D toggleDescriptionOff => GetCachedTexture(DIR_CONFIG, "toggle_description_off.psd");
+        private static Texture2D toggleIconOn => GetCachedTexture(DIR_CONFIG, "toggle_icon_on.psd");
+        private static Texture2D toggleIconOff => GetCachedTexture(DIR_CONFIG, "toggle_icon_off.psd");
+        private static Texture2D toggleLinebreakOn => GetCachedTexture(DIR_CONFIG, "toggle_linebreak_on.psd");
+        private static Texture2D toggleLinebreakOff => GetCachedTexture(DIR_CONFIG, "toggle_linebreak_off.psd");
+        private static Texture2D toggleNextlineOn => GetCachedTexture(DIR_CONFIG, "toggle_nextline_on.psd");
+        private static Texture2D toggleNextlineOff => GetCachedTexture(DIR_CONFIG, "toggle_nextline_off.psd");
+        
+
+
 
         public static Texture2D ToolBarButtonOn => toolBarButtonOn;
         public static Texture2D ToolBarButtonOff => toolBarButtonOff;
@@ -106,8 +119,18 @@ namespace CodeqoEditor
         public static Texture2D Shuffle => shuffle;
         public static Texture2D Repeat => repeat;
         public static Texture2D RepeatOne => repeatOne;
-        
-        
+
+        // Config
+        public static Texture2D ToggleDescriptionOn => toggleDescriptionOn;
+        public static Texture2D ToggleDescriptionOff => toggleDescriptionOff;
+        public static Texture2D ToggleIconOn => toggleIconOn;
+        public static Texture2D ToggleIconOff => toggleIconOff;
+        public static Texture2D ToggleLinebreakOn => toggleLinebreakOn;
+        public static Texture2D ToggleLinebreakOff => toggleLinebreakOff;
+        public static Texture2D ToggleNextlineOn => toggleNextlineOn;
+        public static Texture2D ToggleNextlineOff => toggleNextlineOff;
+
+
 
         public static Texture2D Box(CUIColor color = 0)
         {     

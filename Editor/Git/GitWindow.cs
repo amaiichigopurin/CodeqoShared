@@ -126,7 +126,7 @@ namespace CodeqoEditor.Git
 
                     if (GUILayout.Button("Normalize Line Endings"))
                     {
-                        if (CUIUtility.Warning("Are you sure you want to continue?"))
+                        if (CUIDialogue.Warning("Are you sure you want to continue?"))
                         {
                             NomalizeLineEndings();
                         }
@@ -134,7 +134,7 @@ namespace CodeqoEditor.Git
 
                     if (GUILayout.Button("Configure core.autocrlf Globally [true]"))
                     {
-                        if (CUIUtility.Warning("Are you sure you want to continue?"))
+                        if (CUIDialogue.Warning("Are you sure you want to continue?"))
                         {
                             ConfigureAutoCRLF(true);
                         }
@@ -142,7 +142,7 @@ namespace CodeqoEditor.Git
 
                     if (GUILayout.Button("Configure core.autocrlf Globally [false]"))
                     {
-                        if (CUIUtility.Warning("Are you sure you want to continue?"))
+                        if (CUIDialogue.Warning("Are you sure you want to continue?"))
                         {
                             ConfigureAutoCRLF(false);
                         }
@@ -150,7 +150,7 @@ namespace CodeqoEditor.Git
 
                     if (GUILayout.Button("Force Push"))
                     {
-                        if (CUIUtility.Warning("Are you sure you want to upload to the git repository?"))
+                        if (CUIDialogue.Warning("Are you sure you want to upload to the git repository?"))
                         {
                             string popupMessage = "Are you sure you want to force push?";
                             string popupDescription = "Version type is used to determine the version number. \n" +
@@ -238,7 +238,7 @@ namespace CodeqoEditor.Git
 
             if (GUILayout.Button("Upload (Git Push)"))
             {
-                if (CUIUtility.Warning("Are you sure you want to upload to the git repository?"))
+                if (CUIDialogue.Warning("Are you sure you want to upload to the git repository?"))
                 {
                     string popupMessage = "Please select the version type.";
                     string popupDescription = "Version type is used to determine the version number. \n" +

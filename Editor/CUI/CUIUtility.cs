@@ -120,7 +120,5 @@ namespace CodeqoEditor
             return obj;
         }
 
-        public static bool Warning(string message) => EditorUtility.DisplayDialog("Warning", message, "Yes", "Cancel");
-        public static bool Error(string message) => EditorUtility.DisplayDialog("Error", message, "Ok");
     }
 }

@@ -44,6 +44,7 @@ namespace CodeqoEditor
         public static GUIContent Generate => EditorGUIUtility.IconContent("d_PlayButton");
         public static GUIContent Clipboard => EditorGUIUtility.IconContent("Clipboard");
         public static GUIContent Layout => EditorGUIUtility.IconContent("d_layout");
+        public static GUIContent Clear => EditorGUIUtility.IconContent("d_TreeEditor.Trash");
 
     }
 }

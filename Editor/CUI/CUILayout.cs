@@ -9,7 +9,7 @@ namespace CodeqoEditor
     public partial class CUILayout
     {
         private static Dictionary<string, GUIStyle> cachedStyles = new Dictionary<string, GUIStyle>();
-        
+
         public static void InfoVisitButton(string label, string url)
         {
             GUILayout.BeginHorizontal();
@@ -20,7 +20,7 @@ namespace CodeqoEditor
 
             if (GUILayout.Button("Visit", new GUILayoutOption[] {
                 GUILayout.Width(50),
-                GUILayout.ExpandHeight(true)
+                GUILayout.Height(38),
                 }))
             {
                 Application.OpenURL(url);
@@ -35,7 +35,7 @@ namespace CodeqoEditor
             if (!cachedStyles.ContainsKey(styleKey))
             {
                 GUIStyle style = new GUIStyle(EditorStyles.foldout);
-                style.fontStyle = FontStyle.Bold;                
+                style.fontStyle = FontStyle.Bold;
                 cachedStyles.Add(styleKey, style);
             }
 
@@ -85,7 +85,7 @@ namespace CodeqoEditor
             EditorGUILayout.LabelField(label, titleStyle);
             CUIUtility.DrawTitleLine();
         }
-        
+
         public static void BoxedLayout(string label, Action callback, Texture2D texture = null)
         {
             Rect r = (Rect)EditorGUILayout.BeginVertical(CUI.skin.box);
@@ -117,7 +117,7 @@ namespace CodeqoEditor
             GUILayout.EndHorizontal();
             return p.boolValue;
         }
-        
+
         public static void SpriteField(SerializedProperty p, int size, int topMargin)
         {
             GUILayout.BeginVertical();
@@ -189,17 +189,17 @@ namespace CodeqoEditor
             return style;
         }
 
-        public static void BoxedLabel(GUIContent label, TextAnchor alignment, params GUILayoutOption[] options)        
-            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(alignment), options);   
-        public static void BoxedLabel(GUIContent label, TextAnchor alignment, CUIColor color, params GUILayoutOption[] options)        
+        public static void BoxedLabel(GUIContent label, TextAnchor alignment, params GUILayoutOption[] options)
+            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(alignment), options);
+        public static void BoxedLabel(GUIContent label, TextAnchor alignment, CUIColor color, params GUILayoutOption[] options)
             => EditorGUILayout.LabelField(label, GetCachedBoxStyle(alignment, color), options);
-        public static void BoxedLabel(string label, TextAnchor alignment, params GUILayoutOption[] options)        
+        public static void BoxedLabel(string label, TextAnchor alignment, params GUILayoutOption[] options)
            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(alignment), options);
-        public static void BoxedLabel(GUIContent label, params GUILayoutOption[] options)        
-            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);   
-        public static void BoxedLabel(string label, params GUILayoutOption[] options)             
-            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);        
-        #endregion               
+        public static void BoxedLabel(GUIContent label, params GUILayoutOption[] options)
+            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);
+        public static void BoxedLabel(string label, params GUILayoutOption[] options)
+            => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);
+        #endregion
 
         #region OtherLabel
         public static void CenteredLabel(GUIContent label, int fontSize = 10)
@@ -382,7 +382,7 @@ namespace CodeqoEditor
         }
 
         #endregion
-        
+
         #region ColorButton        
         public static bool ColorButton(GUIContent content, Color backgroundColor, Color textColor, GUIStyle style = null, params GUILayoutOption[] options)
         {
@@ -470,7 +470,7 @@ namespace CodeqoEditor
             if (index < 0) index = 0;
             return list[index];
         }
-        
+
         public static string ListDropdownField(string currentValue, List<string> list, GUIContent label = null, params GUILayoutOption[] options)
             => GenericDropdownField(currentValue, list, label, options);
         public static string ListDropdownField(string currentValue, string[] array, GUIContent label = null, params GUILayoutOption[] options)
@@ -717,7 +717,7 @@ namespace CodeqoEditor
 
         public static string TextArea(string text, Object assetToSave, GUIStyle style, params GUILayoutOption[] options)
         {
-            if (assetToSave == null) throw new ArgumentNullException(nameof(assetToSave));  
+            if (assetToSave == null) throw new ArgumentNullException(nameof(assetToSave));
             if (style == null) style = EditorStyles.textArea;
 
             CUI.CurrentField = assetToSave.GetHashCode().ToString();

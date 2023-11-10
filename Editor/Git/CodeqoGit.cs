@@ -128,7 +128,7 @@ namespace CodeqoEditor.Git
         public async Task PushAsync(VersionIncrement versionInc, bool force = false)
         {
             string pushCommand = $"push origin {GIT_BRANCH}";
-            if (force) pushCommand += " --force";       
+            if (force) pushCommand += " --force";
             await RunGitCommandAsync("add .");
             await RunGitCommandAsync(pushCommand);
             await PushVersionTagAsync(versionInc);
@@ -176,12 +176,12 @@ namespace CodeqoEditor.Git
             await RunGitCommandAsync("add .");
             await RunGitCommandAsync("commit -m \"" + _remoteVersion.CreateTagInfo() + "\"");
         }
-        
+
         public Task StatusAsync() => RunGitCommandAsync("status");
         public Task ConfigureLocalCoreAutoCRLFAsync(bool value) => RunGitCommandAsync($"config core.autocrlf {(value ? "true" : "false")}");
         public Task ConfigureGlobalCoreAutoCRLFAsync(bool value) => RunGitCommandAsync($"config --global core.autocrlf {(value ? "true" : "false")}");
         public Task NormalizeLineEndingsAsync() => RunGitCommandAsync("add --renormalize .");
-        
+
         public async Task<string> PushVersionAsync()
         {
             return await RunGitCommandAsync("remote get-url origin", returnOutput: true);
@@ -322,7 +322,6 @@ namespace CodeqoEditor.Git
             }
         }
     }
-
 
     public static class TaskExtensions
     {

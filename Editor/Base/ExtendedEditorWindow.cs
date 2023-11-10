@@ -45,7 +45,7 @@ namespace Glitch9
                 GUILayout.Space(5);
                 GUILayout.BeginVertical();
                 OnGUIUpdate();
-                GUILayout.FlexibleSpace();
+
 
                 GUILayout.Space(5);
                 GUILayout.EndVertical();
@@ -56,6 +56,11 @@ namespace Glitch9
             GUILayout.BeginVertical(BottomBorderStyle);
             DrawBottom();
             GUILayout.EndVertical();
+        }
+
+        protected void GoToBottomScrollPosition()
+        {
+            scrollPosition.y = int.MaxValue;
         }
 
         void DrawTop()
