@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,37 +10,40 @@ namespace CodeqoEditor
     {
         const float WINDOW_HEIGHT = 180f;
         const float WINDOW_WIDTH = 340f;
-        
-        public string _title;
+
+        //public string _title;
         public string _description;
         public Value _value;
+        public List<Value> _valueList;
         public Action<Value> _callback;
-        
-        public static void ShowWindow(string title, Action<Value> onComplete)
+
+        public static void ShowWindow(string title, Action<Value> onComplete, IEnumerable<Value> valueList = null)
         {
-            ShowWindow(title, null, default, onComplete);
+            ShowWindow((title, null), default, onComplete, valueList);
         }
 
-        public static void ShowWindow(string title, Value defaultValue, Action<Value> onComplete)
-        {            
-            ShowWindow(title, null, defaultValue, onComplete);
-        }
-        public static void ShowWindow(string title, string description, Action<Value> onComplete)
+        public static void ShowWindow(string title, Value defaultValue, Action<Value> onComplete, IEnumerable<Value> valueList = null)
         {
-            ShowWindow(title, description, default, onComplete);
+            ShowWindow((title, null), defaultValue, onComplete, valueList);
         }
 
-        public static void ShowWindow(string title, string description, Value defaultValue, Action<Value> onComplete) 
+        public static void ShowWindow((string, string) titleAndDescription, Action<Value> onComplete, IEnumerable<Value> valueList = null)
+        {
+            ShowWindow(titleAndDescription, default, onComplete, valueList);
+        }
+
+        public static void ShowWindow((string, string) titleAndDescription, Value defaultValue, Action<Value> onComplete, IEnumerable<Value> valueList = null)
         {
             if (onComplete == null) throw new ArgumentNullException(nameof(onComplete), "Callback cannot be null");
 
             try
             {
-                var window = GetWindow<Window>(true, title, true);
-                window._title = title;
-                window._description = description;
+                var window = GetWindow<Window>(true, titleAndDescription.Item1, true);
+                //window._title = titleAndDescription.Item1;
+                window._description = titleAndDescription.Item2;
                 window._callback = onComplete;
                 window._value = defaultValue;
+                window._valueList = valueList != null ? new List<Value>(valueList) : null;
                 window.minSize = new Vector2(WINDOW_WIDTH, WINDOW_HEIGHT);
                 window.maxSize = new Vector2(WINDOW_WIDTH, WINDOW_HEIGHT);
                 window.Show();
@@ -47,7 +51,7 @@ namespace CodeqoEditor
             catch
             {
                 Debug.LogError("Failed to create window of type " + typeof(Window));
-            }              
+            }
         }
 
         void OnGUI()
@@ -55,16 +59,16 @@ namespace CodeqoEditor
             EditorGUILayout.BeginVertical();
 
             // Draw Title and Description
-            EditorGUILayout.LabelField(_title, EditorStyles.boldLabel);
-            EditorGUILayout.Space();
+            //EditorGUILayout.LabelField(_title, EditorStyles.boldLabel);
+            //EditorGUILayout.Space();
 
             // Draw Description
             DrawDescription();
             EditorGUILayout.Space();
-            
+
             // Draw Content
             _value = DrawContent(_value);
-            EditorGUILayout.Space();
+            GUILayout.FlexibleSpace();
 
             // Draw Buttons
             DrawButtons();

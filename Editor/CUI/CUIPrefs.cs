@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 namespace CodeqoEditor
 {
@@ -32,6 +30,5 @@ namespace CodeqoEditor
             key = Application.dataPath + "_" + key;
             EditorPrefs.SetBool(key, !EditorPrefs.GetBool(key));
         }
-
     }
 }

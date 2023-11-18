@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Sirenix.Utilities;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -9,6 +11,7 @@ namespace CodeqoEditor
     public partial class CUILayout
     {
         private static Dictionary<string, GUIStyle> cachedStyles = new Dictionary<string, GUIStyle>();
+        private static Dictionary<string, GUILayoutOption[]> cachedLayoutOptions = new Dictionary<string, GUILayoutOption[]>();
 
         public static void InfoVisitButton(string label, string url)
         {
@@ -199,6 +202,46 @@ namespace CodeqoEditor
             => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);
         public static void BoxedLabel(string label, params GUILayoutOption[] options)
             => EditorGUILayout.LabelField(label, GetCachedBoxStyle(TextAnchor.MiddleCenter), options);
+        #endregion
+
+        #region MiniButton
+        private static GUIStyle GetCachedMiniButtonStyle(TextAnchor alignment)
+        {
+            string key = $"MiniButton_{alignment}";
+            if (!cachedStyles.TryGetValue(key, out var style))
+            {
+                style = new GUIStyle(GUI.skin.button);
+                style.fontSize = 10;
+                style.wordWrap = true;
+                style.alignment = alignment;
+                cachedStyles[key] = style;
+            }
+            return style;
+        }
+
+        private static GUILayoutOption[] GetCachedMiniButtonLayoutOptions()
+        {
+            string key = "MiniButton";
+            if (!cachedLayoutOptions.TryGetValue(key, out var options))
+            {
+                options = new GUILayoutOption[] {
+                    GUILayout.Height(40),
+                    GUILayout.ExpandWidth(true),
+                    GUILayout.ExpandHeight(false)
+
+                };
+                cachedLayoutOptions[key] = options;
+            }
+            return options;
+        }
+
+        public static bool MiniButton(GUIContent label, TextAnchor alignment = TextAnchor.MiddleCenter)
+            => GUILayout.Button(label, GetCachedMiniButtonStyle(alignment), GetCachedMiniButtonLayoutOptions());
+        public static bool MiniButton(string label, TextAnchor alignment = TextAnchor.MiddleCenter)
+            => GUILayout.Button(new GUIContent(label), GetCachedMiniButtonStyle(alignment), GetCachedMiniButtonLayoutOptions());
+        public static bool MiniButton(Texture2D tex, TextAnchor alignment = TextAnchor.MiddleCenter)
+            => GUILayout.Button(new GUIContent(tex), GetCachedMiniButtonStyle(alignment), GetCachedMiniButtonLayoutOptions());
+
         #endregion
 
         #region OtherLabel
@@ -450,31 +493,42 @@ namespace CodeqoEditor
         #endregion
 
         #region ListDropdownField
-        private static T GenericDropdownField<T>(T currentValue, IList<T> list, GUIContent label = null, params GUILayoutOption[] options)
+        private static T GenericDropdownField<T>(T currentValue, IList<T> list, GUIContent label = null, Rect? position = null, params GUILayoutOption[] options)
         {
             if (list == null || list.Count == 0)
             {
-                EditorGUILayout.HelpBox("No list found.", MessageType.None);
+                if (position.HasValue) EditorGUI.HelpBox(position.Value, "No list found.", MessageType.None);
+                else EditorGUILayout.HelpBox("No list found.", MessageType.None);
+
                 return default;
             }
 
             int index = list.IndexOf(currentValue);
-            List<string> stringArray = new List<string>();
-            foreach (var enumValue in list)
-            {
-                stringArray.Add(enumValue.ToString());
-            }
+            List<string> stringArray = list.Select(enumValue => enumValue.ToString()).ToList();
 
+            if (position.HasValue) index = EditorGUI.Popup(position.Value, index, stringArray.ToArray());
+            else index = EditorGUILayout.Popup(label, index, stringArray.ToArray(), options);
 
-            index = EditorGUILayout.Popup(label, index, stringArray.ToArray(), options);
             if (index < 0) index = 0;
             return list[index];
         }
 
+        // GUILayoutOption 사용할때
         public static string ListDropdownField(string currentValue, List<string> list, GUIContent label = null, params GUILayoutOption[] options)
-            => GenericDropdownField(currentValue, list, label, options);
+            => GenericDropdownField(currentValue, list, label, null, options);
+
         public static string ListDropdownField(string currentValue, string[] array, GUIContent label = null, params GUILayoutOption[] options)
-            => GenericDropdownField(currentValue, array, label, options);
+            => GenericDropdownField(currentValue, array, label, null, options);
+        // end
+
+        // Rect 사용할때
+        public static string ListDropdownField(string currentValue, List<string> list, GUIContent label = null, Rect? position = null)
+            => GenericDropdownField(currentValue, list, label, position);
+
+        public static string ListDropdownField(string currentValue, string[] array, GUIContent label = null, Rect? position = null)
+            => GenericDropdownField(currentValue, array, label, position);
+        // end
+
         #endregion
 
         #region ListToolbarField
@@ -516,7 +570,7 @@ namespace CodeqoEditor
                 }
 
                 // Use toggle style buttons for the toolbar buttons
-                bool isActive = GUILayout.Toggle(index == i, list[i], EditorStyles.toolbarButton, options);
+                bool isActive = GUILayout.Toggle(index == i, list[i], EditorStyles.miniButton, options);
                 if (isActive) index = i;
 
                 totalWidth += buttonWidth;

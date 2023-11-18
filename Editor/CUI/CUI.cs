@@ -52,9 +52,9 @@ namespace CodeqoEditor
             string key = "background";
             if (!cachedStyles.ContainsKey(key))
             {
-                cachedStyles.Add(key, new GUIStyle 
-                { 
-                    normal = { background = EditorTexture.Background } 
+                cachedStyles.Add(key, new GUIStyle
+                {
+                    normal = { background = EditorTexture.Background }
                 });
             }
             return cachedStyles[key];
@@ -83,7 +83,7 @@ namespace CodeqoEditor
             => BoxInternal(0, new RectOffset(margin, margin, margin, margin));
         public static GUIStyle Box(int left, int right, int top, int bottom, CUIColor color = CUIColor.None)
             => BoxInternal(color, new RectOffset(left, right, top, bottom));
-        
+
 
         private static GUIStyle BorderInternal(BorderDirection direction, RectOffset padding)
         {
@@ -193,6 +193,36 @@ namespace CodeqoEditor
             texture.SetPixel(0, 0, color);
             texture.Apply();
             return texture;
+        }
+
+        public static void PingScriptableObject(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                Debug.LogError("Asset path is null or empty.");
+                return;
+            }
+
+            if (!assetPath.EndsWith(".asset"))
+            {
+                Debug.LogError("스크립터블 오브젝트가 아닙니다.");
+                return;
+            }
+            // Load the object from the provided asset path
+            ScriptableObject obj = AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath);
+
+            if (obj != null)
+            {
+                // Set the object as the active selection
+                Selection.activeObject = obj;
+
+                // Ping the object in the project window to highlight it
+                EditorGUIUtility.PingObject(obj);
+            }
+            else
+            {
+                Debug.LogError("Could not find an object at the specified path: " + assetPath);
+            }
         }
     }
 }

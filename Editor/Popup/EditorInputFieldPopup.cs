@@ -2,7 +2,7 @@ using UnityEditor;
 
 namespace CodeqoEditor
 {
-    public class TextEditorPopup : EditorPopupBase<TextEditorPopup, string>
+    public class EditorInputFieldPopup : EditorPopupBase<EditorInputFieldPopup, string>
     {
         protected override string DrawContent(string value)
         {

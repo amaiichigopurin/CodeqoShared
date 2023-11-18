@@ -45,6 +45,9 @@ namespace CodeqoEditor
         public static GUIContent Clipboard => EditorGUIUtility.IconContent("Clipboard");
         public static GUIContent Layout => EditorGUIUtility.IconContent("d_layout");
         public static GUIContent Clear => EditorGUIUtility.IconContent("d_TreeEditor.Trash");
+        public static GUIContent Plus => EditorGUIUtility.IconContent("d_winbtn_mac_max_h");
+        public static GUIContent Minus => EditorGUIUtility.IconContent("d_winbtn_mac_close_h");
+        public static GUIContent Neutral => EditorGUIUtility.IconContent("d_winbtn_mac_min_h");
 
     }
 }

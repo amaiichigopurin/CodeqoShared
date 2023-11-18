@@ -158,7 +158,7 @@ namespace CodeqoEditor.Git
                                                       "Minor: 1.0.0 -> 1.1.0 \n" +
                                                       "Major: 1.0.0 -> 2.0.0 \n";
 
-                            VersionTypePopup.ShowWindow(popupMessage, popupDescription, VersionIncrement.Patch, ForcePush);
+                            VersionTypePopup.ShowWindow((popupMessage, popupDescription), VersionIncrement.Patch, ForcePush);
                         }
                     }
 
@@ -246,7 +246,7 @@ namespace CodeqoEditor.Git
                                               "Minor: 1.0.0 -> 1.1.0 \n" +
                                               "Major: 1.0.0 -> 2.0.0 \n";
 
-                    VersionTypePopup.ShowWindow(popupMessage, popupDescription, VersionIncrement.Patch, Push);
+                    VersionTypePopup.ShowWindow((popupMessage, popupDescription), VersionIncrement.Patch, Push);
                 }
             }
 
